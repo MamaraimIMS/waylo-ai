@@ -1,0 +1,44 @@
+# Environment
+.env
+.env.local
+.env.production
+*.env.backup
+
+# Secrets
+**/credentials.json
+**/secrets.json
+api-keys.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+
+# Build artifacts
+dist/
+build/
+_site/
+
+# Logs
+*.log
+logs/
+
+# Test outputs
+/tmp/waylo-*
+test-request-*.docx
+/scripts/generated/
+
+# Supabase CLI
+.supabase/
+
+# n8n local
+.n8n/

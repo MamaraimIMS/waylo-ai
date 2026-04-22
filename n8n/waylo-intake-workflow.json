@@ -1,0 +1,263 @@
+{
+  "name": "WayloAI · Transfer Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "waylo-intake",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "file",
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "node-webhook",
+      "name": "Webhook · Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [200, 400],
+      "webhookId": "waylo-intake"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate incoming file and generate request ID\nconst item = $input.item;\nconst bin = item.binary?.file;\nif (!bin) throw new Error('No file attached in field \"file\"');\n\nconst mime = bin.mimeType || '';\nconst fileName = bin.fileName || 'unknown';\nconst fileExt = (fileName.split('.').pop() || '').toLowerCase();\n\nlet fileType = 'unknown';\nif (mime.includes('wordprocessingml') || fileExt === 'docx') fileType = 'docx';\nelse if (mime.includes('pdf') || fileExt === 'pdf') fileType = 'pdf';\n\nif (fileType === 'unknown') {\n  throw new Error('Unsupported file type: ' + mime + ' (.' + fileExt + ')');\n}\n\nif ((bin.fileSize || 0) > 20 * 1024 * 1024) {\n  throw new Error('File too large (max 20MB)');\n}\n\nconst requestId = 'REQ-' + new Date().getFullYear() + '-' +\n  String(Math.floor(Math.random() * 90000 + 10000));\n\nreturn {\n  json: {\n    request_id: requestId,\n    file_name: fileName,\n    file_type: fileType,\n    file_size: bin.fileSize || 0,\n    mime_type: mime,\n    received_at: new Date().toISOString(),\n    received_ts: Date.now()\n  },\n  binary: item.binary\n};"
+      },
+      "id": "node-validate",
+      "name": "Validate File",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [420, 400]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.file_type }}",
+        "rules": {
+          "rules": [
+            {"value2": "docx", "output": 0},
+            {"value2": "pdf", "output": 1}
+          ]
+        }
+      },
+      "id": "node-switch",
+      "name": "Switch by Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [640, 400]
+    },
+    {
+      "parameters": {
+        "operation": "extract",
+        "options": {"keepSource": "json"}
+      },
+      "id": "node-docx",
+      "name": "Extract DOCX",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "id": "node-pdf",
+      "name": "Extract PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [860, 500]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "multiplex",
+        "options": {}
+      },
+      "id": "node-merge",
+      "name": "Merge Paths",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-5\",\n  \"max_tokens\": 4096,\n  \"system\": \"Ты эксперт по парсингу турагентских заявок. Извлеки из документа ВСЕ трансферные сегменты и верни строго валидный JSON без markdown-обёртки и комментариев.\\n\\nПРАВИЛА:\\n- Трансфер = поездка клиентов на автомобиле (airport→hotel, hotel→restaurant, hotel→station, etc.)\\n- Если в программе есть перелёт, добавь трансферы hotel→airport до вылета и airport→hotel после прилёта.\\n- Экскурсии и программа посещений НЕ являются трансферами.\\n- Даты: YYYY-MM-DD. Время: HH:MM.\\n- Города нормализуй в lowercase: tashkent, khiva, bukhara, samarkand, urganch, gijduvan.\\n- dispatch_city = город, где забирают клиента.\\n- Если день без трансферов — верни пустой transfers, заполни empty_reason.\\n\\nФОРМАТ:\\n{\\n  \\\"tour_name\\\": string,\\n  \\\"dmc_hint\\\": string,\\n  \\\"pax_count\\\": number,\\n  \\\"confidence\\\": number 0..1,\\n  \\\"tour_starts_on\\\": \\\"YYYY-MM-DD\\\",\\n  \\\"tour_ends_on\\\": \\\"YYYY-MM-DD\\\",\\n  \\\"cities\\\": [string],\\n  \\\"days\\\": [{\\n    \\\"day_number\\\": number,\\n    \\\"date\\\": \\\"YYYY-MM-DD\\\",\\n    \\\"transfers\\\": [{\\n      \\\"sequence\\\": number,\\n      \\\"time_from\\\": \\\"HH:MM\\\",\\n      \\\"time_to\\\": \\\"HH:MM\\\",\\n      \\\"travel_minutes\\\": number,\\n      \\\"location_from\\\": string,\\n      \\\"location_to\\\": string,\\n      \\\"city_from\\\": string,\\n      \\\"city_to\\\": string,\\n      \\\"dispatch_city\\\": string,\\n      \\\"is_intercity\\\": boolean\\n    }],\\n    \\\"empty_reason\\\": string|null\\n  }]\\n}\",\n  \"messages\": [\n    {\"role\": \"user\", \"content\": {{ JSON.stringify($json.text || $json.data || '') }}}\n  ]\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "node-claude",
+      "name": "Claude · Extract",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1300, 400],
+      "credentials": {
+        "httpHeaderAuth": {"id": "anthropic-credentials", "name": "Anthropic API"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude response, normalize, classify vehicle\nconst resp = $input.item.json;\nconst text = resp?.content?.[0]?.text || '';\nconst cleaned = text.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  throw new Error('Claude returned non-JSON: ' + text.slice(0, 300));\n}\n\nconst ctx = $('Validate File').item.json;\n\nfunction classifyVehicle(pax) {\n  if (pax <= 2) return 'sedan';\n  if (pax <= 4) return 'minivan';\n  if (pax <= 8) return 'van';\n  if (pax <= 12) return 'midibus';\n  return 'bus';\n}\n\nconst totalSegments = (parsed.days || [])\n  .reduce((n, d) => n + (d.transfers?.length || 0), 0);\n\nreturn {\n  json: {\n    request_id: ctx.request_id,\n    source_file_name: ctx.file_name,\n    source_file_type: ctx.file_type,\n    source_file_size: ctx.file_size,\n    tour_name: parsed.tour_name,\n    dmc_hint: parsed.dmc_hint,\n    pax_count: parsed.pax_count,\n    vehicle_category: classifyVehicle(parsed.pax_count),\n    ai_confidence: parsed.confidence,\n    tour_starts_on: parsed.tour_starts_on,\n    tour_ends_on: parsed.tour_ends_on,\n    cities_covered: (parsed.cities || []).map(c => c.toLowerCase()),\n    total_segments: totalSegments,\n    total_days: (parsed.days || []).length,\n    days: parsed.days,\n    parse_raw_output: parsed,\n    parse_duration_ms: Date.now() - ctx.received_ts,\n    status: 'parsed'\n  }\n};"
+      },
+      "id": "node-normalize",
+      "name": "Normalize Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1520, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "transfer_requests",
+        "columns": "external_id,dmc_id,tour_name,pax_count,vehicle_category,status,source_file_name,source_file_type,ai_confidence,parse_duration_ms,parse_raw_output,total_segments,total_days,cities_covered,tour_starts_on,tour_ends_on",
+        "returnFields": "id",
+        "additionalFields": {
+          "mode": "independently"
+        }
+      },
+      "id": "node-insert-request",
+      "name": "Supabase · Insert Request",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1740, 400],
+      "credentials": {
+        "postgres": {"id": "supabase-credentials", "name": "Supabase PostgreSQL"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare segments for bulk insert\nconst req = $('Normalize Data').item.json;\nconst insertedId = $input.item.json.id;\n\nconst rows = [];\nlet seq = 0;\nfor (const day of req.days || []) {\n  for (const t of (day.transfers || [])) {\n    seq++;\n    rows.push({\n      request_id: insertedId,\n      day_number: day.day_number,\n      transfer_date: day.date,\n      sequence: t.sequence || seq,\n      time_from: t.time_from,\n      time_to: t.time_to,\n      travel_duration_minutes: t.travel_minutes || 0,\n      location_from: t.location_from,\n      location_to: t.location_to,\n      city_from: (t.city_from || '').toLowerCase(),\n      city_to: (t.city_to || '').toLowerCase(),\n      dispatch_city: (t.dispatch_city || t.city_from || '').toLowerCase(),\n      is_intercity: !!t.is_intercity\n    });\n  }\n}\n\nreturn rows.map(r => ({ json: r }));"
+      },
+      "id": "node-explode",
+      "name": "Explode Segments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1960, 400]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "transfer_segments",
+        "columns": "request_id,day_number,transfer_date,sequence,time_from,time_to,travel_duration_minutes,location_from,location_to,city_from,city_to,dispatch_city,is_intercity",
+        "additionalFields": {}
+      },
+      "id": "node-insert-segments",
+      "name": "Supabase · Insert Segments",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [2180, 400],
+      "credentials": {
+        "postgres": {"id": "supabase-credentials", "name": "Supabase PostgreSQL"}
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT DISTINCT dispatch_city, transfer_date FROM transfer_segments WHERE request_id = $1 ORDER BY transfer_date, dispatch_city;",
+        "additionalFields": {
+          "queryParams": "={{ $('Supabase · Insert Request').item.json.id }}"
+        }
+      },
+      "id": "node-pairs",
+      "name": "Get City-Day Pairs",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [2400, 400],
+      "credentials": {
+        "postgres": {"id": "supabase-credentials", "name": "Supabase PostgreSQL"}
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM find_available_drivers($1::city_code, $2::date, $3::vehicle_category, $4::smallint, 5);",
+        "additionalFields": {
+          "queryParams": "={{ $json.dispatch_city }},{{ $json.transfer_date }},{{ $('Normalize Data').item.json.vehicle_category }},{{ $('Normalize Data').item.json.pax_count }}"
+        }
+      },
+      "id": "node-find-drivers",
+      "name": "Find Drivers",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [2620, 400],
+      "credentials": {
+        "postgres": {"id": "supabase-credentials", "name": "Supabase PostgreSQL"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build final dashboard response\nconst req = $('Normalize Data').item.json;\nconst requestDbId = $('Supabase · Insert Request').item.json.id;\nconst pairs = $('Get City-Day Pairs').all().map(i => i.json);\nconst allDrivers = $input.all().map(i => i.json);\n\n// Group drivers by their pairing item\nconst assignments = pairs.map((pair, idx) => {\n  const drivers = allDrivers.filter(d => d && d.driver_id);\n  const top = drivers[idx] || drivers[0];\n  return {\n    city: pair.dispatch_city,\n    date: pair.transfer_date,\n    suggested: top ? {\n      id: top.driver_id,\n      name: top.full_name,\n      rating: Number(top.rating),\n      trips: top.trips_completed\n    } : null\n  };\n});\n\n// Build structure compatible with dashboard UI\nconst uniqueCities = [...new Set(assignments.map(a => a.city))];\nconst cityToDriver = {};\nassignments.forEach(a => {\n  if (a.suggested && !cityToDriver[a.city]) {\n    const initials = a.suggested.name.split(' ').map(p => p[0]).slice(0,2).join('');\n    cityToDriver[a.city] = {\n      city: a.city,\n      driver: a.suggested.name,\n      initials,\n      status: 'confirmed'\n    };\n  }\n});\n\nconst assignmentsByDay = {};\n(req.days || []).forEach(day => {\n  const dayAssignments = [];\n  const citiesInDay = [...new Set((day.transfers || []).map(t => (t.dispatch_city || t.city_from || '').toLowerCase()))];\n  citiesInDay.forEach(c => {\n    if (cityToDriver[c]) dayAssignments.push(cityToDriver[c]);\n  });\n  assignmentsByDay[day.day_number] = dayAssignments;\n});\n\nconst recommended = allDrivers\n  .filter(d => d && d.driver_id)\n  .slice(0, 4)\n  .map(d => ({\n    name: d.full_name,\n    city: 'N/A',\n    car: 'Info from DB',\n    plate: d.license_plate,\n    rating: Number(d.rating),\n    trips: d.trips_completed,\n    status: 'available'\n  }));\n\nreturn {\n  json: {\n    request_id: req.request_id,\n    request_db_id: requestDbId,\n    dmc: req.dmc_hint || 'Unknown',\n    tour_name: req.tour_name,\n    pax: req.pax_count,\n    vehicle_type: req.vehicle_category,\n    parsing_confidence: req.ai_confidence,\n    parsing_duration_ms: req.parse_duration_ms,\n    days: (req.days || []).map(d => ({\n      day_number: d.day_number,\n      date: d.date,\n      date_display: d.date ? d.date.split('-').reverse().join('.') : '',\n      transfers: (d.transfers || []).map(t => ({\n        time_from: t.time_from,\n        time_to: t.time_to,\n        from: t.location_from,\n        to: t.location_to,\n        travel: minutesToHHMM(t.travel_minutes),\n        city: (t.dispatch_city || t.city_from || '').toLowerCase()\n      })),\n      empty_reason: d.empty_reason\n    })),\n    assignments: assignmentsByDay,\n    recommended_drivers: recommended\n  }\n};\n\nfunction minutesToHHMM(m) {\n  if (!m) return '00:00:00';\n  const h = Math.floor(m / 60);\n  const mm = m % 60;\n  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}:00`;\n}"
+      },
+      "id": "node-build-response",
+      "name": "Build Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2840, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {"name": "Access-Control-Allow-Origin", "value": "*"},
+              {"name": "Access-Control-Allow-Methods", "value": "POST, OPTIONS"},
+              {"name": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization"},
+              {"name": "Content-Type", "value": "application/json"}
+            ]
+          }
+        }
+      },
+      "id": "node-respond",
+      "name": "Respond to Dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [3060, 400]
+    }
+  ],
+  "connections": {
+    "Webhook · Intake": {"main": [[{"node": "Validate File", "type": "main", "index": 0}]]},
+    "Validate File": {"main": [[{"node": "Switch by Type", "type": "main", "index": 0}]]},
+    "Switch by Type": {
+      "main": [
+        [{"node": "Extract DOCX", "type": "main", "index": 0}],
+        [{"node": "Extract PDF", "type": "main", "index": 0}]
+      ]
+    },
+    "Extract DOCX": {"main": [[{"node": "Merge Paths", "type": "main", "index": 0}]]},
+    "Extract PDF": {"main": [[{"node": "Merge Paths", "type": "main", "index": 1}]]},
+    "Merge Paths": {"main": [[{"node": "Claude · Extract", "type": "main", "index": 0}]]},
+    "Claude · Extract": {"main": [[{"node": "Normalize Data", "type": "main", "index": 0}]]},
+    "Normalize Data": {"main": [[{"node": "Supabase · Insert Request", "type": "main", "index": 0}]]},
+    "Supabase · Insert Request": {"main": [[{"node": "Explode Segments", "type": "main", "index": 0}]]},
+    "Explode Segments": {"main": [[{"node": "Supabase · Insert Segments", "type": "main", "index": 0}]]},
+    "Supabase · Insert Segments": {"main": [[{"node": "Get City-Day Pairs", "type": "main", "index": 0}]]},
+    "Get City-Day Pairs": {"main": [[{"node": "Find Drivers", "type": "main", "index": 0}]]},
+    "Find Drivers": {"main": [[{"node": "Build Response", "type": "main", "index": 0}]]},
+    "Build Response": {"main": [[{"node": "Respond to Dashboard", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "Asia/Tashkent"
+  },
+  "tags": ["waylo-ai", "production"],
+  "versionId": "1.1.0"
+}

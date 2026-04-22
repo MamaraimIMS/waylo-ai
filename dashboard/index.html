@@ -1,0 +1,2959 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WayloAI · Автоматизация трансферов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --surface-2: #F4F4F0;
+  --surface-3: #EDEDE7;
+  --ink: #1A1A1A;
+  --ink-2: #2F2F2D;
+  --ink-3: #4D4D4A;
+  --muted: #72726C;
+  --muted-2: #9A9A92;
+  --hint: #BDBDB6;
+  --line: #E5E5DF;
+  --line-2: #D4D4CD;
+  --primary: #0A7D5F;
+  --primary-soft: #E6F4EE;
+  --primary-border: #B5DCCA;
+  --primary-hover: #086549;
+  --primary-ink: #044A38;
+  --accent: #D85A30;
+  --accent-soft: #FBEDE5;
+  --success: #157F3C;
+  --success-soft: #E9F5EC;
+  --warn: #B77300;
+  --warn-soft: #FAEFD9;
+  --danger: #C93434;
+  --danger-soft: #FBE9E9;
+
+  --r: 8px;
+  --r-lg: 12px;
+
+  --font: 'Roboto', system-ui, sans-serif;
+  --mono: 'Roboto Mono', ui-monospace, monospace;
+
+  --shadow-sm: 0 1px 2px rgba(26, 26, 26, 0.04);
+  --shadow: 0 2px 8px rgba(26, 26, 26, 0.06);
+  --shadow-lg: 0 8px 24px rgba(26, 26, 26, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: var(--font);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'tnum' 1;
+}
+
+body { min-height: 100vh; }
+
+::selection { background: var(--primary-soft); color: var(--primary-ink); }
+button { font-family: inherit; }
+
+/* ═══════════════════════════════════════════ HEADER ═══ */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 18px;
+  border-radius: 10px;
+  letter-spacing: -0.03em;
+  box-shadow: 0 2px 6px rgba(10, 125, 95, 0.25);
+}
+
+.brand-text .name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.brand-text .name .ai {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.brand-text .tagline {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--r);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.header-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--line-2);
+  color: var(--ink);
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  background: var(--surface-2);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════ SHELL ═══ */
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* ═══════════════════════════════════════════ HERO ═══ */
+.hero {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.hero h1 {
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.15;
+  margin-bottom: 10px;
+}
+
+.hero h1 .accent {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.hero p {
+  font-size: 15.5px;
+  color: var(--muted);
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+
+/* ═══════════════════════════════════════════ STEP PROGRESS ═══ */
+.steps-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 28px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.snav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--r);
+  transition: all 0.2s;
+}
+
+.snav-item.active {
+  background: var(--primary-soft);
+}
+
+.snav-item.done .snav-num {
+  background: var(--primary);
+  color: white;
+}
+
+.snav-item.done .snav-num::before {
+  content: '✓';
+  font-size: 15px;
+}
+
+.snav-item.done .snav-num-text { display: none; }
+
+.snav-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1.5px solid var(--line-2);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 15px;
+  font-family: var(--mono);
+  flex-shrink: 0;
+  transition: all 0.25s;
+}
+
+.snav-item.active .snav-num {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.snav-text .label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.snav-text .title {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.snav-item.active .snav-text .label { color: var(--primary); }
+.snav-item.active .snav-text .title { color: var(--primary-ink); }
+
+/* ═══════════════════════════════════════════ STEP SECTION ═══ */
+.step {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  margin-bottom: 20px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.step-head {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.step-num-big {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: var(--mono);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.step-head.muted .step-num-big {
+  background: var(--surface-3);
+  color: var(--muted);
+}
+
+.step-head-text { flex: 1; }
+
+.step-head h2 {
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+
+.step-head p {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.step-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--success-soft);
+  color: var(--success);
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+.step-status-badge .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+.step-body {
+  padding: 20px 24px 24px;
+}
+
+/* ═══════════════════════════════════════════ DROPZONE ═══ */
+.dropzone {
+  border: 2px dashed var(--line-2);
+  border-radius: var(--r-lg);
+  padding: 44px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface-2);
+}
+
+.dropzone:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.dropzone.drag {
+  border-color: var(--primary);
+  border-style: solid;
+  background: var(--primary-soft);
+  transform: scale(1.003);
+}
+
+.dz-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  margin: 0 auto 16px;
+  transition: all 0.2s;
+}
+
+.dropzone:hover .dz-icon {
+  border-color: var(--primary-border);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(10, 125, 95, 0.15);
+}
+
+.dz-title {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.dz-hint {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.dz-formats {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fmt {
+  padding: 3px 9px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-weight: 500;
+}
+
+.dropzone-alt {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dropzone-alt a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px dotted var(--primary-border);
+  padding-bottom: 1px;
+}
+
+.dropzone-alt a:hover { border-bottom-style: solid; }
+
+#file-input { display: none; }
+
+/* ═══════════════════════════════════════════ PIPELINE STEPS (этап 2) ═══ */
+.pipe-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  margin-bottom: 18px;
+  font-size: 13px;
+}
+
+.pipe-file .pf-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.pipe-file .pf-name {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.pipe-file .pf-size {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.pipe-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pipe-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface);
+  transition: all 0.2s;
+}
+
+.pipe-step.active {
+  border-color: var(--primary-border);
+  background: var(--primary-soft);
+}
+
+.pipe-step.done {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.ps-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-2);
+  background: var(--surface);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.pipe-step.active .ps-num {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.pipe-step.done .ps-num {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.pipe-step.done .ps-num-text { display: none; }
+.pipe-step.done .ps-num::before { content: '✓'; font-family: var(--font); font-size: 14px; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(10, 125, 95, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(10, 125, 95, 0); }
+}
+
+.ps-text { flex: 1; min-width: 0; }
+
+.ps-title {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.pipe-step.active .ps-title { color: var(--primary-ink); }
+
+.ps-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.ps-time {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--primary);
+  font-weight: 500;
+  min-width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════ RESULT (этап 3) ═══ */
+.result-header {
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+
+.result-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.result-title {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.result-title .cc {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.result-id {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--muted);
+  letter-spacing: -0.01em;
+}
+
+.badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font-size: 13px;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+
+.badge b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.badge.primary {
+  background: var(--primary-soft);
+  border-color: var(--primary-border);
+  color: var(--primary-ink);
+}
+
+.badge.primary b { color: var(--primary); }
+
+/* ═══════════════════════════════════════════ SUBSECTION ═══ */
+.subsection {
+  margin-top: 24px;
+}
+
+.subsection-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
+}
+
+.subsection-title::before {
+  content: '';
+  width: 3px;
+  height: 16px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.subsection-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  margin-left: 11px;
+}
+
+/* ═══════════════════════════════════════════ DAYS & TRANSFERS ═══ */
+.days { display: flex; flex-direction: column; gap: 10px; }
+
+.day {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.day.empty { background: var(--surface-2); }
+
+.trow {
+  display: grid;
+  grid-template-columns: 104px 1fr 1fr 112px;
+  border-bottom: 1px solid var(--line);
+}
+
+.trow:last-child { border-bottom: none; }
+
+.tcell {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 64px;
+}
+
+.tcell.daylbl {
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+}
+
+.day-num {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.1;
+  margin-bottom: 5px;
+}
+
+.day-date {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: white;
+  background: var(--primary);
+  padding: 3px 6px;
+  border-radius: 3px;
+  display: inline-block;
+  width: fit-content;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.tcell.from {
+  background: var(--primary-soft);
+  border-right: 1px solid var(--primary-border);
+}
+
+.tcell.to {
+  background: var(--accent-soft);
+  border-right: 1px solid var(--line);
+}
+
+.tcell.tv { background: var(--surface-2); }
+
+.ttime {
+  font-family: var(--mono);
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 6px;
+  letter-spacing: -0.03em;
+}
+
+.tloc {
+  font-size: 13px;
+  color: var(--primary-ink);
+  line-height: 1.35;
+}
+
+.tcell.to .tloc { color: #7A2E15; }
+
+.tv-val {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.tv-lbl {
+  font-size: 10.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+
+.empty-day {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+.empty-msg {
+  color: var(--muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* ═══════════════════════════════════════════ DRIVERS LANE ═══ */
+.dlane {
+  background: var(--surface-2);
+  border-top: 1px solid var(--line);
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.dlane-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-right: 2px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 12px 3px 4px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.chip .cav {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: grid; place-items: center;
+  font-size: 10.5px;
+  font-weight: 500;
+  font-family: var(--mono);
+  letter-spacing: -0.02em;
+}
+
+.chip.confirmed {
+  background: var(--success-soft);
+  border-color: #C1E4C9;
+  color: var(--success);
+}
+
+.chip.confirmed .cav { background: var(--success); }
+
+.chip.pending {
+  background: var(--warn-soft);
+  border-color: #F0D49E;
+  color: var(--warn);
+}
+
+.chip.pending .cav { background: var(--warn); }
+
+.chip .ck { margin-left: 2px; font-weight: 500; }
+
+.ctag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: var(--mono);
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.ctag.tashkent { background: #FAEEDA; color: #854F0B; }
+.ctag.khiva { background: #D6E9B8; color: #27500A; }
+.ctag.bukhara { background: #CFE3F7; color: #0C447C; }
+.ctag.samarkand { background: #F7CFDC; color: #72243E; }
+.ctag.urganch { background: #DCD9F0; color: #3C3489; }
+
+/* ═══════════════════════════════════════════ DRIVERS & CALENDAR GRID ═══ */
+.two-col {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.panel-head {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-head h3 {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.panel-head .desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 1px;
+}
+
+.panel-badge {
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--muted);
+  padding: 3px 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* driver list */
+.driver-list {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.driver {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--r);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.driver:hover { background: var(--surface-2); }
+
+.driver-avatar-lg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A7D5F, #1D9E75);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 12.5px;
+  font-weight: 500;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  letter-spacing: -0.02em;
+}
+
+.driver-info { flex: 1; min-width: 0; }
+
+.driver-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.driver-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.driver-tail {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.driver-rating {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 500;
+  font-family: var(--mono);
+}
+
+.driver-rating .star { color: var(--warn); margin-right: 3px; }
+.driver-rating .cnt {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 11px;
+  margin-left: 3px;
+}
+
+.driver-status {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.driver-status.available { background: var(--success-soft); color: var(--success); }
+.driver-status.busy { background: var(--danger-soft); color: var(--danger); }
+
+/* calendar */
+.cal-wrap { padding: 14px 16px 16px; }
+
+.cal-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.cal-month {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.cal-nav-btns { display: flex; gap: 4px; }
+
+.cal-nav-btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.cal-nav-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.cal-head {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: center;
+  padding: 4px 0;
+  font-weight: 500;
+}
+
+.cal-cell {
+  aspect-ratio: 1;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-weight: 500;
+}
+
+.cal-cell.free { background: var(--success-soft); color: var(--success); }
+.cal-cell.free:hover { background: #D1E8D5; }
+.cal-cell.busy { background: var(--danger-soft); color: var(--danger); }
+.cal-cell.busy:hover { background: #F7C8C8; }
+.cal-cell.booked { background: var(--primary); color: white; }
+.cal-cell.other { color: var(--hint); cursor: default; }
+
+.cal-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cal-legend-item { display: flex; align-items: center; gap: 6px; }
+.cal-legend-sq { width: 11px; height: 11px; border-radius: 3px; }
+
+/* ═══════════════════════════════════════════ ACTION BAR ═══ */
+.actbar {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  height: 38px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--r);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.btn:hover { background: var(--surface-2); border-color: var(--line-2); color: var(--ink); }
+.btn:active { transform: translateY(1px); }
+
+.btn.primary {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  padding: 0 20px;
+}
+
+.btn.primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  box-shadow: 0 2px 8px rgba(10, 125, 95, 0.2);
+}
+
+.btn.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.btn.ghost:hover { background: var(--surface-2); color: var(--ink); }
+
+/* ═══════════════════════════════════════════ STATS STRIP ═══ */
+.stats-strip {
+  margin-top: 40px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+.stats-title {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-item {
+  padding-left: 14px;
+  border-left: 2px solid var(--line);
+}
+
+.stat-label {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--ink);
+  font-family: var(--mono);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.stat-value .unit {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 2px;
+}
+
+.stat-value .dim {
+  font-size: 15px;
+  color: var(--muted-2);
+  font-weight: 400;
+}
+
+.stat-delta {
+  font-size: 11.5px;
+  color: var(--success);
+  margin-top: 4px;
+  font-family: var(--mono);
+}
+
+.stat-delta.neutral { color: var(--muted); }
+
+/* ═══════════════════════════════════════════ JSON PREVIEW (collapsible) ═══ */
+.json-toggle {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.json-toggle button {
+  font-size: 12.5px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 5px;
+  transition: all 0.15s;
+}
+
+.json-toggle button:hover {
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.json-preview {
+  display: none;
+  margin-top: 14px;
+  padding: 16px 18px;
+  background: #1A1A1A;
+  color: #B5D4B5;
+  border-radius: var(--r);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre;
+  line-height: 1.6;
+}
+
+.json-preview.on { display: block; }
+
+.json-key { color: #7BC5A8; }
+.json-str { color: #E8A57F; }
+.json-num { color: #E9A8C0; }
+
+/* ═══════════════════════════════════════════ DRAWER ═══ */
+.backdrop {
+  position: fixed; inset: 0;
+  background: rgba(26, 26, 26, 0.35);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  z-index: 100;
+}
+
+.backdrop.on { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 440px;
+  max-width: 94vw;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 101;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 24px rgba(26, 26, 26, 0.08);
+}
+
+.drawer.on { transform: translateX(0); }
+
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 1;
+}
+
+.drawer-head h3 {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.drawer-head p {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.x-btn {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: 16px;
+  color: var(--muted);
+  cursor: pointer;
+  width: 32px; height: 32px;
+  border-radius: var(--r);
+  display: grid; place-items: center;
+  transition: all 0.15s;
+}
+
+.x-btn:hover { background: var(--surface-3); color: var(--ink); }
+
+.drawer-body { padding: 20px 24px; flex: 1; }
+
+.conn-section {
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.conn-section:last-of-type { border-bottom: none; }
+
+.conn-section h4 {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.conn-section .section-hint {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  line-height: 1.45;
+}
+
+.ff { margin-bottom: 12px; }
+
+.ff label {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.ff input {
+  width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  font-family: var(--mono);
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--ink);
+  transition: all 0.15s;
+  height: 38px;
+}
+
+.ff input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.ff input:disabled { opacity: 0.55; background: var(--surface-2); }
+
+.ff .h {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.tog-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.tog-row + .tog-row { border-top: 1px solid var(--line); }
+
+.tog-row .ti {
+  font-size: 14px;
+  color: var(--ink);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.tog-row .td {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.tog {
+  position: relative;
+  width: 36px; height: 20px;
+  background: var(--line-2);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.tog::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: left 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.tog.on { background: var(--primary); }
+.tog.on::after { left: 18px; }
+
+.tres {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: var(--mono);
+  display: none;
+}
+
+.tres.on { display: block; }
+.tres.ok { background: var(--success-soft); color: var(--success); }
+.tres.err { background: var(--danger-soft); color: var(--danger); }
+
+/* ═══════════════════════════════════════════ TOAST ═══ */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--ink);
+  color: white;
+  padding: 12px 20px;
+  border-radius: var(--r);
+  font-size: 13.5px;
+  transition: transform 0.25s;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.toast-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* ═══════════════════════════════════════════ STEP 4 · CONFIRMATIONS ═══ */
+.confirm-progress {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.cp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cp-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.cp-title .num {
+  font-family: var(--mono);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.cp-title .total {
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+.cp-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font-size: 13px;
+}
+
+.cp-timer.warn {
+  background: var(--warn-soft);
+  border-color: #F0D49E;
+  color: var(--warn);
+}
+
+.cp-timer.warn .cp-timer-val { color: var(--warn); }
+
+.cp-timer-val {
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  font-size: 14px;
+}
+
+.cp-timer-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.cp-bar {
+  height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cp-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+/* confirm cards */
+.confirm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cdrv {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface);
+  transition: all 0.25s;
+  position: relative;
+}
+
+.cdrv.pending {
+  background: var(--warn-soft);
+  border-color: #F0D49E;
+}
+
+.cdrv.confirmed {
+  background: var(--success-soft);
+  border-color: #C1E4C9;
+}
+
+.cdrv.declined {
+  background: var(--danger-soft);
+  border-color: #F1C6C6;
+  opacity: 0.85;
+}
+
+.cdrv.fade-in {
+  animation: fadeIn 0.45s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cdrv-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A7D5F, #1D9E75);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+  font-family: var(--mono);
+  letter-spacing: -0.02em;
+}
+
+.cdrv.confirmed .cdrv-avatar { background: var(--success); }
+.cdrv.declined .cdrv-avatar { background: #9A7070; }
+.cdrv.pending .cdrv-avatar { background: linear-gradient(135deg, var(--warn), #D89F3E); }
+
+.cdrv-info { flex: 1; min-width: 0; }
+
+.cdrv-name {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.cdrv-meta {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.cdrv-status {
+  font-size: 12.5px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.cdrv.pending .cdrv-status { color: var(--warn); }
+.cdrv.confirmed .cdrv-status { color: var(--success); }
+.cdrv.declined .cdrv-status { color: var(--danger); }
+
+.cdrv-status .timer-val {
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.cdrv-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cdrv-action button {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--ink-2);
+  transition: all 0.12s;
+  font-family: var(--font);
+}
+
+.cdrv-action button:hover { background: var(--surface-2); border-color: var(--line-2); }
+
+.cdrv-dot-ind {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.cdrv.pending .cdrv-dot-ind { animation: blink 1.4s ease-in-out infinite; }
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* escalation arrow between cards */
+.escalation-link {
+  padding: 2px 0 2px 22px;
+  font-size: 12px;
+  color: var(--info);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  animation: fadeIn 0.35s ease;
+}
+
+.escalation-link::before {
+  content: '↳';
+  font-size: 14px;
+}
+
+/* activity feed */
+.activity-feed {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  animation: fadeIn 0.35s ease;
+}
+
+.activity-item:last-child { border-bottom: none; }
+
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted-2);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+.activity-item.confirm .activity-dot { background: var(--success); }
+.activity-item.decline .activity-dot { background: var(--danger); }
+.activity-item.info .activity-dot { background: var(--info); }
+.activity-item.system .activity-dot { background: var(--primary); }
+
+.activity-body { flex: 1; min-width: 0; }
+
+.activity-text {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+
+.activity-text b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.activity-time {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 1px;
+  font-family: var(--mono);
+}
+
+/* success banner */
+.success-banner {
+  display: none;
+  margin-bottom: 18px;
+  padding: 16px 20px;
+  background: var(--success-soft);
+  border: 1px solid #C1E4C9;
+  border-radius: var(--r);
+  align-items: center;
+  gap: 14px;
+  animation: fadeIn 0.4s ease;
+}
+
+.success-banner.on { display: flex; }
+
+.success-banner .sb-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--success);
+  color: white;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 20px;
+}
+
+.success-banner .sb-text .sb-title {
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--success);
+  letter-spacing: -0.01em;
+}
+
+.success-banner .sb-text .sb-desc {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════ RESPONSIVE ═══ */
+@media (max-width: 900px) {
+  .steps-nav { grid-template-columns: 1fr 1fr; gap: 4px; }
+  .two-col { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .stat-item { padding-left: 12px; }
+  .hero h1 { font-size: 26px; }
+  .cdrv { flex-wrap: wrap; }
+  .cdrv-action { width: 100%; justify-content: flex-end; }
+}
+
+@media (max-width: 640px) {
+  .shell { padding: 20px 14px 60px; }
+  .header { padding: 12px 14px; }
+  .brand-text .tagline { display: none; }
+  .trow { grid-template-columns: 76px 1fr 1fr 82px; }
+  .empty-day { grid-template-columns: 76px 1fr; }
+  .step-head { padding: 16px; }
+  .step-body { padding: 16px; }
+  .result-title { font-size: 18px; }
+  .dz-title { font-size: 15px; }
+  .dropzone { padding: 32px 16px; }
+  .badges .badge:nth-child(n+4) { display: none; }
+  .header-btn span { display: none; }
+  .user-badge span { display: none; }
+}
+
+@media (max-width: 480px) {
+  .trow { grid-template-columns: 1fr; }
+  .tcell { border-bottom: 1px solid var(--line); }
+  .tcell.daylbl { border-right: none; }
+  .tcell.from, .tcell.to { border-right: none; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="header">
+  <div class="brand">
+    <div class="logo">W</div>
+    <div class="brand-text">
+      <div class="name">Waylo<span class="ai">AI</span></div>
+      <div class="tagline">Автоматизация трансферов для DMC</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="header-btn" id="open-settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Настройки</span>
+    </button>
+    <div class="user-badge">
+      <div class="user-avatar">OP</div>
+      <span>Диспетчер</span>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Загрузите заявку — получите готовый <span class="accent">маршрут</span><br>и водителей за 8 секунд</h1>
+    <p>WayloAI читает документ от туроператора, собирает модульный график трансферов и находит свободных водителей в нужных городах по рейтингу.</p>
+  </div>
+
+  <!-- Step progress nav -->
+  <div class="steps-nav" id="steps-nav">
+    <div class="snav-item active" data-snav="1">
+      <div class="snav-num"><span class="snav-num-text">1</span></div>
+      <div class="snav-text">
+        <div class="label">Шаг 1</div>
+        <div class="title">Загрузка заявки</div>
+      </div>
+    </div>
+    <div class="snav-item" data-snav="2">
+      <div class="snav-num"><span class="snav-num-text">2</span></div>
+      <div class="snav-text">
+        <div class="label">Шаг 2</div>
+        <div class="title">Обработка документа ИИ</div>
+      </div>
+    </div>
+    <div class="snav-item" data-snav="3">
+      <div class="snav-num"><span class="snav-num-text">3</span></div>
+      <div class="snav-text">
+        <div class="label">Шаг 3</div>
+        <div class="title">Готовый маршрут</div>
+      </div>
+    </div>
+    <div class="snav-item" data-snav="4">
+      <div class="snav-num"><span class="snav-num-text">4</span></div>
+      <div class="snav-text">
+        <div class="label">Шаг 4</div>
+        <div class="title">Подтверждение водителей</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1 · Dropzone -->
+  <div class="step" id="step-1">
+    <div class="step-head">
+      <div class="step-num-big">1</div>
+      <div class="step-head-text">
+        <h2>Загрузите заявку от DMC</h2>
+        <p>Перетащите файл DOCX или PDF с программой тура — система автоматически распознает все трансферы</p>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="dropzone" id="drop">
+        <input type="file" id="file-input" accept=".docx,.pdf">
+        <div class="dz-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="dz-title">Перетащите файл сюда</div>
+        <div class="dz-hint">или нажмите, чтобы выбрать документ на компьютере</div>
+        <div class="dz-formats">
+          <span class="fmt">.docx</span>
+          <span class="fmt">.pdf</span>
+          <span style="color:var(--hint)">·</span>
+          <span>до 20 MB</span>
+        </div>
+      </div>
+      <div class="dropzone-alt">
+        Нет готовой заявки? <a href="#" id="try-sample">Попробовать на демо-примере (Hugo Villar, США, 10 дней)</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 · AI Pipeline -->
+  <div class="step" id="step-2" style="display:none">
+    <div class="step-head">
+      <div class="step-num-big">2</div>
+      <div class="step-head-text">
+        <h2>ИИ обрабатывает ваш документ</h2>
+        <p>Claude Sonnet 4.5 читает документ и последовательно извлекает все трансферные сегменты</p>
+      </div>
+      <span class="step-status-badge" id="step-2-status" style="display:none"><span class="dot"></span>Готово</span>
+    </div>
+    <div class="step-body">
+      <div class="pipe-file">
+        <div class="pf-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <span class="pf-name" id="file-name">—</span>
+        <span class="pf-size" id="file-size">—</span>
+      </div>
+      <div class="pipe-steps" id="pipe-steps">
+        <div class="pipe-step" data-step="1">
+          <div class="ps-num"><span class="ps-num-text">1</span></div>
+          <div class="ps-text">
+            <div class="ps-title">Получение документа</div>
+            <div class="ps-desc">Извлечение текста из DOCX или PDF</div>
+          </div>
+          <div class="ps-time"></div>
+        </div>
+        <div class="pipe-step" data-step="2">
+          <div class="ps-num"><span class="ps-num-text">2</span></div>
+          <div class="ps-text">
+            <div class="ps-title">Анализ содержимого</div>
+            <div class="ps-desc">ИИ находит все упоминания трансферов и даты поездок</div>
+          </div>
+          <div class="ps-time"></div>
+        </div>
+        <div class="pipe-step" data-step="3">
+          <div class="ps-num"><span class="ps-num-text">3</span></div>
+          <div class="ps-text">
+            <div class="ps-title">Построение графика</div>
+            <div class="ps-desc">Группировка трансферов по дням с указанием городов</div>
+          </div>
+          <div class="ps-time"></div>
+        </div>
+        <div class="pipe-step" data-step="4">
+          <div class="ps-num"><span class="ps-num-text">4</span></div>
+          <div class="ps-text">
+            <div class="ps-title">Подбор типа транспорта</div>
+            <div class="ps-desc">Sedan, minivan, van, midibus или bus — по количеству туристов</div>
+          </div>
+          <div class="ps-time"></div>
+        </div>
+        <div class="pipe-step" data-step="5">
+          <div class="ps-num"><span class="ps-num-text">5</span></div>
+          <div class="ps-text">
+            <div class="ps-title">Поиск водителей</div>
+            <div class="ps-desc">Матчинг по городам, рейтингу и занятости в календаре</div>
+          </div>
+          <div class="ps-time"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 · Result -->
+  <div class="step" id="step-3" style="display:none">
+    <div class="step-head">
+      <div class="step-num-big">3</div>
+      <div class="step-head-text">
+        <h2>Маршрут готов к отправке водителям</h2>
+        <p>Проверьте расписание, при необходимости замените водителя и отправьте запросы в один клик</p>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <!-- Request header -->
+      <div class="result-header">
+        <div class="result-title-row">
+          <h1 class="result-title" id="r-title">Hugo Villar, <span class="cc">USA</span></h1>
+          <span class="result-id" id="r-id">REQ-2026-0010 · Advantour · обработано за 8.4 сек</span>
+        </div>
+        <div class="badges">
+          <span class="badge primary"><b>2</b> туриста</span>
+          <span class="badge"><b>Sedan</b> economy</span>
+          <span class="badge"><b>7</b> дней с трансферами</span>
+          <span class="badge"><b>11</b> сегментов</span>
+          <span class="badge"><b>4</b> города</span>
+        </div>
+      </div>
+
+      <!-- Route -->
+      <div class="subsection">
+        <div class="subsection-title">Модульный маршрут по дням</div>
+        <div class="subsection-hint">Зелёный столбец — пункт выезда, оранжевый — пункт назначения, серый — время в пути</div>
+        <div class="days" id="days"></div>
+      </div>
+
+      <!-- Drivers & Calendar -->
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Рекомендованные водители</h3>
+              <div class="desc">Отсортированы по рейтингу и близости</div>
+            </div>
+            <span class="panel-badge">4 найдено</span>
+          </div>
+          <div class="driver-list" id="driver-list"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h3>Занятость топ-водителя</h3>
+              <div class="desc">Абдуллаев Б. · Ташкент · Mercedes Sprinter</div>
+            </div>
+            <span class="panel-badge">live</span>
+          </div>
+          <div class="cal-wrap">
+            <div class="cal-head-row">
+              <div class="cal-month">Май 2026</div>
+              <div class="cal-nav-btns">
+                <button class="cal-nav-btn">‹</button>
+                <button class="cal-nav-btn">›</button>
+              </div>
+            </div>
+            <div class="cal-grid" id="calendar"></div>
+            <div class="cal-legend">
+              <div class="cal-legend-item">
+                <span class="cal-legend-sq" style="background:var(--success-soft)"></span>
+                Свободен
+              </div>
+              <div class="cal-legend-item">
+                <span class="cal-legend-sq" style="background:var(--primary)"></span>
+                В этой заявке
+              </div>
+              <div class="cal-legend-item">
+                <span class="cal-legend-sq" style="background:var(--danger-soft)"></span>
+                Занят
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actbar">
+        <button class="btn primary" onclick="sendToDrivers()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Отправить 4 водителям
+        </button>
+        <button class="btn" onclick="toast('Открываем детальный календарь')">Показать календарь</button>
+        <button class="btn" onclick="toast('Готовим PDF-отчёт для DMC')">Экспорт в PDF</button>
+        <button class="btn" onclick="saveSQL()">Сохранить в базу</button>
+        <button class="btn ghost" style="margin-left:auto" onclick="resetAll()">+ Новая заявка</button>
+      </div>
+
+      <!-- Developer JSON -->
+      <div class="json-toggle">
+        <button onclick="toggleJSON()" id="json-btn">▾ Показать технический ответ (JSON)</button>
+        <div class="json-preview" id="json-preview"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 · Driver confirmations -->
+  <div class="step" id="step-4" style="display:none">
+    <div class="step-head">
+      <div class="step-num-big">4</div>
+      <div class="step-head-text">
+        <h2>Ждём подтверждения от водителей</h2>
+        <p>Каждому водителю отправлено push-уведомление. У них <b>15 минут</b>, чтобы принять заявку. При отказе или молчании система автоматически найдёт замену из следующего по рейтингу.</p>
+      </div>
+      <span class="step-status-badge" id="step-4-status" style="display:none">
+        <span class="dot"></span>
+        <span id="step-4-status-text">Готово</span>
+      </span>
+    </div>
+    <div class="step-body">
+
+      <!-- Success banner (shows when all confirmed) -->
+      <div class="success-banner" id="success-banner">
+        <div class="sb-icon">✓</div>
+        <div class="sb-text">
+          <div class="sb-title">Все водители подтверждены</div>
+          <div class="sb-desc">Заявка REQ-2026-0010 готова к исполнению. Вы получите уведомление за 2 часа до первого трансфера.</div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="confirm-progress">
+        <div class="cp-head">
+          <div class="cp-title">
+            <span class="num" id="confirm-count">0</span> из <span class="total" id="confirm-total">4</span> подтвердили
+          </div>
+          <div class="cp-timer" id="sla-timer-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span class="cp-timer-val" id="sla-timer">14:59</span>
+            <span class="cp-timer-label">до истечения SLA</span>
+          </div>
+        </div>
+        <div class="cp-bar">
+          <div class="cp-bar-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <!-- Confirm list -->
+      <div class="confirm-list" id="confirm-list"></div>
+
+      <!-- Activity feed -->
+      <div class="activity-feed">
+        <div class="subsection-title">Активность в реальном времени</div>
+        <div class="activity-list" id="activity-list"></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actbar">
+        <button class="btn primary" id="complete-btn" style="display:none" onclick="completeRequest()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Завершить и сохранить заявку
+        </button>
+        <button class="btn" onclick="toast('Готовим PDF-отчёт для DMC')">Экспорт в PDF</button>
+        <button class="btn" onclick="toast('Отмена заявки требует подтверждения')">Отменить заявку</button>
+        <button class="btn ghost" style="margin-left:auto" onclick="resetAll()">+ Новая заявка</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats strip (context about the system) -->
+  <div class="stats-strip">
+    <div class="stats-title">Сводка за текущий месяц</div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-label">Обработано заявок</div>
+        <div class="stat-value">148</div>
+        <div class="stat-delta">+23 на прошлой неделе</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Активных водителей</div>
+        <div class="stat-value">142 <span class="dim">всего</span></div>
+        <div class="stat-delta neutral">87 онлайн сейчас</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Точность распознавания</div>
+        <div class="stat-value">94.2<span class="unit">%</span></div>
+        <div class="stat-delta">+1.8% за неделю</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Среднее время подтверждения</div>
+        <div class="stat-value">18<span class="unit">мин</span></div>
+        <div class="stat-delta neutral">SLA 30 мин</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══════════ DRAWER ═══════════ -->
+<div class="backdrop" id="backdrop"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div>
+      <h3>Настройки подключения</h3>
+      <p>Привяжите свой n8n workflow и базу данных</p>
+    </div>
+    <button class="x-btn" id="close-drawer">✕</button>
+  </div>
+  <div class="drawer-body">
+
+    <div class="conn-section">
+      <h4>n8n Workflow</h4>
+      <div class="section-hint">Автоматизация приёма документов и вызова ИИ. Настройте адрес вашего webhook.</div>
+      <div class="ff">
+        <label>URL webhook</label>
+        <input type="url" id="n8n-url" placeholder="https://n8n.example.com/webhook/waylo-intake">
+        <div class="h">Тип запроса: POST · формат: multipart/form-data</div>
+      </div>
+      <div class="ff">
+        <label>Токен авторизации (необязательно)</label>
+        <input type="password" id="n8n-auth" placeholder="Bearer ...">
+      </div>
+      <button class="btn" style="height:34px" onclick="testN8N()">Проверить соединение</button>
+      <div class="tres" id="n8n-test"></div>
+    </div>
+
+    <div class="conn-section">
+      <h4>База данных PostgreSQL</h4>
+      <div class="section-hint">Хранит заявки, водителей, назначения и календарь занятости.</div>
+      <div class="ff">
+        <label>API-адрес</label>
+        <input type="url" id="sql-endpoint" placeholder="https://api.example.com/v1">
+        <div class="h">Совместимо с Supabase · PostgREST · NestJS</div>
+      </div>
+      <div class="ff">
+        <label>Токен доступа</label>
+        <input type="password" id="sql-token" placeholder="eyJhbGc...">
+      </div>
+      <button class="btn" style="height:34px" onclick="testSQL()">Проверить соединение</button>
+      <div class="tres" id="sql-test"></div>
+    </div>
+
+    <div class="conn-section">
+      <h4>Поведение системы</h4>
+      <div class="tog-row">
+        <div>
+          <div class="ti">Демо-режим</div>
+          <div class="td">Использовать встроенный пример вместо реального API</div>
+        </div>
+        <div class="tog on" id="demo-toggle" onclick="toggleDemo()"></div>
+      </div>
+      <div class="tog-row">
+        <div>
+          <div class="ti">Подтверждение перед отправкой</div>
+          <div class="td">Показывать результат парсинга до рассылки водителям</div>
+        </div>
+        <div class="tog on" id="hitl-toggle" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="tog-row">
+        <div>
+          <div class="ti">Автосохранение в базу</div>
+          <div class="td">Сохранять заявку сразу после парсинга</div>
+        </div>
+        <div class="tog" id="autosave-toggle" onclick="this.classList.toggle('on')"></div>
+      </div>
+    </div>
+
+    <div class="conn-section">
+      <h4>Модель ИИ</h4>
+      <div class="ff">
+        <label>Используется</label>
+        <input type="text" value="Claude Sonnet 4.5 (Anthropic)" disabled>
+        <div class="h">Смена модели производится внутри n8n workflow</div>
+      </div>
+    </div>
+
+    <button class="btn primary" style="width:100%;justify-content:center;height:42px;font-size:14px" onclick="saveSettings()">Сохранить настройки</button>
+  </div>
+</aside>
+
+<div class="toast" id="toast">
+  <span class="toast-dot"></span>
+  <span id="toast-msg">—</span>
+</div>
+
+<script>
+const DEMO_DATA = {
+  request_id: 'REQ-2026-0010', dmc: 'Advantour', tour_name: 'Hugo Villar, USA',
+  pax: 2, vehicle_type: 'sedan',
+  parsing_confidence: 0.94, parsing_duration_ms: 8400,
+  days: [
+    { day_number: 1, date_display: '10.05.2026', transfers: [
+      { time_from: '10:00', time_to: '10:20', from: 'Tashkent — Airport', to: 'Tashkent — Hotel', travel: '00:20:00', city: 'tashkent' }
+    ]},
+    { day_number: 2, date_display: '11.05.2026', transfers: [
+      { time_from: '09:00', time_to: '13:00', from: 'Tashkent — Hotel', to: 'Tashkent — Restaurant', travel: '04:00:00', city: 'tashkent' },
+      { time_from: '14:00', time_to: '17:30', from: 'Tashkent — Restaurant', to: 'Tashkent — Hotel', travel: '03:30:00', city: 'tashkent' },
+      { time_from: '19:00', time_to: '19:20', from: 'Tashkent — Hotel', to: 'Tashkent — Airport', travel: '00:20:00', city: 'tashkent' },
+      { time_from: '21:20', time_to: '21:55', from: 'Urganch — Airport', to: 'Khiva — Hotel', travel: '00:35:00', city: 'khiva' }
+    ]},
+    { day_number: 3, date_display: '12.05.2026', transfers: [
+      { time_from: '10:00', time_to: '13:00', from: 'Khiva — Hotel', to: 'Khiva — Restaurant', travel: '03:00:00', city: 'khiva' },
+      { time_from: '14:00', time_to: '18:00', from: 'Khiva — Restaurant', to: 'Khiva — Hotel', travel: '04:00:00', city: 'khiva' }
+    ]},
+    { day_number: 4, date_display: '13.05.2026', transfers: [
+      { time_from: '13:40', time_to: '14:15', from: 'Khiva — Hotel', to: 'Urganch — Railway', travel: '00:35:00', city: 'khiva' },
+      { time_from: '20:35', time_to: '21:00', from: 'Bukhara — Railway', to: 'Bukhara — Hotel', travel: '00:25:00', city: 'bukhara' }
+    ]},
+    { day_number: 5, date_display: '14.05.2026', transfers: [], empty_reason: 'Свободный день — трансферы не нужны' },
+    { day_number: 6, date_display: '15.05.2026', transfers: [], empty_reason: 'Свободный день — трансферы не нужны' },
+    { day_number: 7, date_display: '16.05.2026', transfers: [
+      { time_from: '14:40', time_to: '15:00', from: 'Bukhara — Hotel', to: 'Bukhara — Railway', travel: '00:20:00', city: 'bukhara' },
+      { time_from: '17:30', time_to: '17:45', from: 'Samarkand — Railway', to: 'Samarkand — Hotel', travel: '00:15:00', city: 'samarkand' }
+    ]}
+  ],
+  assignments: {
+    '1': [{ city: 'tashkent', driver: 'Абдуллаев Б.', initials: 'АБ', status: 'confirmed' }],
+    '2': [
+      { city: 'tashkent', driver: 'Абдуллаев Б.', initials: 'АБ', count: 3, status: 'confirmed' },
+      { city: 'khiva', driver: 'Юлдашев Б.', initials: 'ЮБ', status: 'confirmed' }
+    ],
+    '3': [{ city: 'khiva', driver: 'Юлдашев Б.', initials: 'ЮБ', count: 2, status: 'confirmed' }],
+    '4': [
+      { city: 'khiva', driver: 'Юлдашев Б.', initials: 'ЮБ', status: 'confirmed' },
+      { city: 'bukhara', driver: 'Зубаев У.', initials: 'ЗУ', status: 'confirmed' }
+    ],
+    '5': [], '6': [],
+    '7': [
+      { city: 'bukhara', driver: 'Зубаев У.', initials: 'ЗУ', status: 'confirmed' },
+      { city: 'samarkand', driver: 'Смирнов К.', initials: 'СК', status: 'pending' }
+    ]
+  },
+  recommended_drivers: [
+    { name: 'Абдуллаев Бахтиер', city: 'Ташкент', car: 'Mercedes Sprinter · 15 мест', plate: '01 B 070 CA', rating: 4.9, trips: 312, status: 'available' },
+    { name: 'Юлдашев Бобур', city: 'Хива', car: 'Mercedes Sprinter · 15 мест', plate: '90 C 110 KL', rating: 4.8, trips: 198, status: 'available' },
+    { name: 'Зубаев Умид', city: 'Бухара', car: 'Hyundai Staria · 8 мест', plate: '40 А 233 BH', rating: 4.9, trips: 247, status: 'available' },
+    { name: 'Смирнов Константин', city: 'Самарканд', car: 'Toyota Hiace · 12 мест', plate: '30 H 445 SM', rating: 4.7, trips: 156, status: 'busy' }
+  ]
+};
+
+const CITIES = { tashkent:'Ташкент', khiva:'Хива', bukhara:'Бухара', samarkand:'Самарканд', urganch:'Ургенч' };
+
+const config = {
+  get n8nUrl() { return localStorage.getItem('waylo_n8n_url') || ''; },
+  set n8nUrl(v) { localStorage.setItem('waylo_n8n_url', v); },
+  get n8nAuth() { return localStorage.getItem('waylo_n8n_auth') || ''; },
+  set n8nAuth(v) { localStorage.setItem('waylo_n8n_auth', v); },
+  get sqlEndpoint() { return localStorage.getItem('waylo_sql_endpoint') || ''; },
+  set sqlEndpoint(v) { localStorage.setItem('waylo_sql_endpoint', v); },
+  get sqlToken() { return localStorage.getItem('waylo_sql_token') || ''; },
+  set sqlToken(v) { localStorage.setItem('waylo_sql_token', v); },
+  get demoMode() { return localStorage.getItem('waylo_demo') !== 'false'; },
+  set demoMode(v) { localStorage.setItem('waylo_demo', v); }
+};
+
+const dz = document.getElementById('drop');
+const fi = document.getElementById('file-input');
+
+dz.addEventListener('click', (e) => { if (e.target.tagName !== 'A') fi.click(); });
+dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dz.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f) handleUpload(f);
+});
+fi.addEventListener('change', (e) => { const f = e.target.files[0]; if (f) handleUpload(f); });
+document.getElementById('try-sample').addEventListener('click', (e) => {
+  e.preventDefault();
+  handleUpload({ name: 'Hugo_Villar_1_USA.docx', size: 48234, isDemoSample: true });
+});
+
+function setSnav(activeNum) {
+  document.querySelectorAll('.snav-item').forEach(item => {
+    const n = parseInt(item.dataset.snav);
+    item.classList.remove('active', 'done');
+    if (n < activeNum) item.classList.add('done');
+    else if (n === activeNum) item.classList.add('active');
+  });
+}
+
+async function handleUpload(file) {
+  document.getElementById('file-name').textContent = file.name;
+  document.getElementById('file-size').textContent = fmtBytes(file.size);
+
+  document.getElementById('step-2').style.display = 'block';
+  document.getElementById('step-3').style.display = 'none';
+  document.getElementById('step-2-status').style.display = 'none';
+
+  setSnav(2);
+  resetPipeline();
+  setTimeout(() => document.getElementById('step-2').scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+
+  if (config.demoMode || file.isDemoSample) {
+    await runDemo();
+    document.getElementById('step-2-status').style.display = 'inline-flex';
+    document.getElementById('step-3').style.display = 'block';
+    renderResult(DEMO_DATA);
+    setSnav(3);
+    toast(`Маршрут готов · ${DEMO_DATA.days.reduce((n,d) => n + d.transfers.length, 0)} трансферов распознано`);
+  } else {
+    try {
+      await runReal(file);
+      document.getElementById('step-2-status').style.display = 'inline-flex';
+      document.getElementById('step-3').style.display = 'block';
+      setSnav(3);
+    } catch (err) {
+      toast('Ошибка: ' + err.message, 'error');
+      setSnav(1);
+    }
+  }
+}
+
+function resetPipeline() {
+  document.querySelectorAll('.pipe-step').forEach(s => {
+    s.classList.remove('active', 'done');
+    s.querySelector('.ps-time').textContent = '';
+  });
+}
+
+async function runDemo() {
+  const steps = [
+    { n: 1, ms: 900, t: '0.9 сек' },
+    { n: 2, ms: 2800, t: '2.8 сек' },
+    { n: 3, ms: 1400, t: '1.4 сек' },
+    { n: 4, ms: 600, t: '0.6 сек' },
+    { n: 5, ms: 1200, t: '1.2 сек' }
+  ];
+  for (const s of steps) {
+    const el = document.querySelector(`.pipe-step[data-step="${s.n}"]`);
+    el.classList.add('active');
+    await sleep(s.ms);
+    el.classList.remove('active');
+    el.classList.add('done');
+    el.querySelector('.ps-time').textContent = s.t;
+  }
+}
+
+async function runReal(file) {
+  if (!config.n8nUrl) throw new Error('n8n webhook не настроен. Откройте "Настройки".');
+  document.querySelector('.pipe-step[data-step="1"]').classList.add('active');
+  const fd = new FormData();
+  fd.append('file', file);
+  const h = {};
+  if (config.n8nAuth) h['Authorization'] = config.n8nAuth;
+  const r = await fetch(config.n8nUrl, { method: 'POST', headers: h, body: fd });
+  if (!r.ok) throw new Error('Сервер ответил HTTP ' + r.status);
+  const d = await r.json();
+  document.querySelectorAll('.pipe-step').forEach(s => { s.classList.remove('active'); s.classList.add('done'); });
+  renderResult(d);
+  toast('Маршрут готов');
+}
+
+function renderResult(data) {
+  document.getElementById('r-title').innerHTML =
+    data.tour_name.replace(/,\s*([A-Z]+)$/, ', <span class="cc">$1</span>');
+  document.getElementById('r-id').textContent =
+    `${data.request_id} · ${data.dmc} · обработано за ${(data.parsing_duration_ms/1000).toFixed(1)} сек · точность ${Math.round(data.parsing_confidence * 100)}%`;
+
+  const g = document.getElementById('days');
+  g.innerHTML = '';
+  data.days.forEach(d => g.appendChild(renderDay(d, data.assignments[d.day_number] || [])));
+
+  const dl = document.getElementById('driver-list');
+  dl.innerHTML = '';
+  data.recommended_drivers.forEach(d => dl.appendChild(renderDriver(d)));
+
+  renderCalendar();
+  renderJSON(data);
+
+  setTimeout(() => document.getElementById('step-3').scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
+}
+
+function renderDay(day, assignments) {
+  const b = document.createElement('div');
+  b.className = 'day';
+  if (day.transfers.length === 0) b.classList.add('empty');
+
+  if (day.transfers.length === 0) {
+    b.innerHTML = `
+      <div class="empty-day">
+        <div>
+          <div class="day-num">День ${day.day_number}</div>
+          <div class="day-date">${day.date_display}</div>
+        </div>
+        <div class="empty-msg">${day.empty_reason || 'Трансферы не требуются'}</div>
+      </div>`;
+    return b;
+  }
+
+  day.transfers.forEach((t, idx) => {
+    const row = document.createElement('div');
+    row.className = 'trow';
+    row.innerHTML = `
+      <div class="tcell daylbl">
+        ${idx === 0 ? `<div class="day-num">День ${day.day_number}</div><div class="day-date">${day.date_display}</div>` : ''}
+      </div>
+      <div class="tcell from">
+        <div class="ttime">${t.time_from}</div>
+        <div class="tloc">${t.from}</div>
+      </div>
+      <div class="tcell to">
+        <div class="ttime">${t.time_to}</div>
+        <div class="tloc">${t.to}</div>
+      </div>
+      <div class="tcell tv">
+        <div class="tv-val">${fmtTravel(t.travel)}</div>
+        <div class="tv-lbl">в пути</div>
+      </div>`;
+    b.appendChild(row);
+  });
+
+  if (assignments.length) {
+    const lane = document.createElement('div');
+    lane.className = 'dlane';
+    lane.innerHTML = `<span class="dlane-label">Водители</span>` +
+      assignments.map(a => `
+        <span class="ctag ${a.city}">${CITIES[a.city]}</span>
+        <span class="chip ${a.status}">
+          <span class="cav">${a.initials}</span>
+          ${a.driver}${a.count ? ` · ${a.count} сегмента` : ''}
+          <span class="ck">${a.status === 'confirmed' ? '✓' : '◷'}</span>
+        </span>
+      `).join('');
+    b.appendChild(lane);
+  }
+  return b;
+}
+
+function fmtTravel(t) {
+  const [h, m] = t.split(':');
+  if (h === '00' && m === '00') return '—';
+  if (h === '00') return `${parseInt(m)} мин`;
+  if (m === '00') return `${parseInt(h)} ч`;
+  return `${parseInt(h)}ч ${m}м`;
+}
+
+function renderDriver(d) {
+  const el = document.createElement('div');
+  el.className = 'driver';
+  const init = d.name.split(' ').map(p => p[0]).slice(0,2).join('');
+  el.innerHTML = `
+    <div class="driver-avatar-lg">${init}</div>
+    <div class="driver-info">
+      <div class="driver-name">${d.name}</div>
+      <div class="driver-meta">${d.city} · ${d.car} · ${d.plate}</div>
+    </div>
+    <div class="driver-tail">
+      <div class="driver-rating"><span class="star">★</span>${d.rating}<span class="cnt">· ${d.trips} поездок</span></div>
+      <span class="driver-status ${d.status}">${d.status === 'available' ? 'свободен' : 'занят'}</span>
+    </div>`;
+  return el;
+}
+
+function renderCalendar() {
+  const cal = document.getElementById('calendar');
+  cal.innerHTML = '';
+  ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => {
+    const h = document.createElement('div');
+    h.className = 'cal-head';
+    h.textContent = d;
+    cal.appendChild(h);
+  });
+  const firstDay = 4, daysInMonth = 31;
+  const booked = [10, 11, 12, 13, 16];
+  const busy = [5, 24, 25];
+  for (let i = 0; i < firstDay; i++) {
+    const c = document.createElement('div');
+    c.className = 'cal-cell other';
+    cal.appendChild(c);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const c = document.createElement('div');
+    if (booked.includes(d)) c.className = 'cal-cell booked';
+    else if (busy.includes(d)) c.className = 'cal-cell busy';
+    else c.className = 'cal-cell free';
+    c.textContent = d;
+    cal.appendChild(c);
+  }
+}
+
+function renderJSON(data) {
+  const out = JSON.stringify(data, null, 2)
+    .replace(/("[\w_]+"):/g, '<span class="json-key">$1</span>:')
+    .replace(/: (".*?")/g, ': <span class="json-str">$1</span>')
+    .replace(/: (\d+\.?\d*)/g, ': <span class="json-num">$1</span>');
+  document.getElementById('json-preview').innerHTML = out;
+}
+
+function toggleJSON() {
+  const p = document.getElementById('json-preview');
+  const b = document.getElementById('json-btn');
+  p.classList.toggle('on');
+  b.textContent = p.classList.contains('on')
+    ? '▴ Скрыть технический ответ (JSON)'
+    : '▾ Показать технический ответ (JSON)';
+}
+
+function fmtBytes(b) {
+  if (!b) return '—';
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function sendToDrivers() {
+  // Open Step 4
+  document.getElementById('step-4').style.display = 'block';
+  setSnav(4);
+
+  // Build initial confirm cards from current DEMO assignments
+  const confirmList = document.getElementById('confirm-list');
+  confirmList.innerHTML = '';
+  document.getElementById('confirm-count').textContent = '0';
+  document.getElementById('confirm-total').textContent = '4';
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('success-banner').classList.remove('on');
+  document.getElementById('step-4-status').style.display = 'none';
+  document.getElementById('complete-btn').style.display = 'none';
+
+  confirmationState = {
+    drivers: [
+      { id: 'AB', name: 'Абдуллаев Бахтиер', city: 'Ташкент', segments: 4, status: 'pending', sentAt: Date.now() },
+      { id: 'YB', name: 'Юлдашев Бобур', city: 'Хива', segments: 4, status: 'pending', sentAt: Date.now() },
+      { id: 'ZU', name: 'Зубаев Умид', city: 'Бухара', segments: 2, status: 'pending', sentAt: Date.now() },
+      { id: 'SK', name: 'Смирнов Константин', city: 'Самарканд', segments: 1, status: 'pending', sentAt: Date.now() }
+    ],
+    confirmed: 0,
+    total: 4,
+    slaStart: Date.now(),
+    slaDuration: 15 * 60 * 1000 // 15 min
+  };
+
+  confirmationState.drivers.forEach(d => confirmList.appendChild(renderConfirmCard(d)));
+
+  // Activity feed
+  const actList = document.getElementById('activity-list');
+  actList.innerHTML = '';
+  addActivity('system', '<b>Запросы отправлены</b> 4 водителям в Ташкент, Хиву, Бухару и Самарканд', 'только что');
+
+  // Scroll
+  setTimeout(() => document.getElementById('step-4').scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+
+  // Start SLA timer
+  startSlaTimer();
+
+  // Run demo simulation
+  simulateConfirmations();
+
+  toast('Запросы отправлены · ожидаем ответов');
+}
+
+let confirmationState = null;
+let slaTimerInterval = null;
+let cardTimerIntervals = {};
+
+function renderConfirmCard(d) {
+  const el = document.createElement('div');
+  el.className = 'cdrv pending';
+  el.dataset.driverId = d.id;
+  el.innerHTML = `
+    <div class="cdrv-avatar">${d.id}</div>
+    <div class="cdrv-info">
+      <div class="cdrv-name">${d.name}</div>
+      <div class="cdrv-meta">${d.city} · ${d.segments} ${d.segments === 1 ? 'сегмент' : 'сегмента'}</div>
+      <div class="cdrv-status">
+        <span class="cdrv-dot-ind"></span>
+        Ждём ответа · осталось <span class="timer-val" data-timer="${d.id}">14:59</span>
+      </div>
+    </div>
+    <div class="cdrv-action">
+      <button onclick="reassignDriver('${d.id}')">Переназначить</button>
+    </div>
+  `;
+  startCardTimer(d.id);
+  return el;
+}
+
+function startCardTimer(driverId) {
+  const startedAt = Date.now();
+  const duration = 15 * 60 * 1000;
+  clearInterval(cardTimerIntervals[driverId]);
+  cardTimerIntervals[driverId] = setInterval(() => {
+    const remaining = duration - (Date.now() - startedAt);
+    if (remaining <= 0) {
+      clearInterval(cardTimerIntervals[driverId]);
+      handleTimeout(driverId);
+      return;
+    }
+    const el = document.querySelector(`[data-timer="${driverId}"]`);
+    if (el) el.textContent = formatCountdown(remaining);
+  }, 1000);
+}
+
+function formatCountdown(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function formatTimeSince(ms) {
+  const sec = Math.floor(ms / 1000);
+  if (sec < 60) return `через ${sec} сек`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `через ${m} мин ${s > 0 ? s + ' сек' : ''}`.trim();
+}
+
+function startSlaTimer() {
+  clearInterval(slaTimerInterval);
+  slaTimerInterval = setInterval(() => {
+    if (!confirmationState) { clearInterval(slaTimerInterval); return; }
+    const elapsed = Date.now() - confirmationState.slaStart;
+    const remaining = confirmationState.slaDuration - elapsed;
+    const el = document.getElementById('sla-timer');
+    const wrap = document.getElementById('sla-timer-wrap');
+    if (!el) return;
+    if (remaining <= 0) {
+      el.textContent = '00:00';
+      wrap.classList.add('warn');
+      clearInterval(slaTimerInterval);
+      return;
+    }
+    el.textContent = formatCountdown(remaining);
+    if (remaining < 3 * 60 * 1000) wrap.classList.add('warn');
+  }, 1000);
+}
+
+function addActivity(type, text, time) {
+  const actList = document.getElementById('activity-list');
+  const el = document.createElement('div');
+  el.className = `activity-item ${type}`;
+  el.innerHTML = `
+    <div class="activity-dot"></div>
+    <div class="activity-body">
+      <div class="activity-text">${text}</div>
+      <div class="activity-time">${time}</div>
+    </div>
+  `;
+  actList.insertBefore(el, actList.firstChild);
+}
+
+function updateProgress() {
+  const { confirmed, total } = confirmationState;
+  document.getElementById('confirm-count').textContent = confirmed;
+  document.getElementById('confirm-total').textContent = total;
+  document.getElementById('progress-fill').style.width = `${(confirmed / total) * 100}%`;
+
+  if (confirmed === total) {
+    document.getElementById('success-banner').classList.add('on');
+    document.getElementById('step-4-status').style.display = 'inline-flex';
+    document.getElementById('step-4-status-text').textContent = 'Все подтвердили';
+    document.getElementById('complete-btn').style.display = 'inline-flex';
+    clearInterval(slaTimerInterval);
+    Object.values(cardTimerIntervals).forEach(i => clearInterval(i));
+    addActivity('system', '<b>Все 4 водителя подтвердили</b> — заявка готова к исполнению', 'только что');
+    toast('Заявка полностью подтверждена');
+  }
+}
+
+function markConfirmed(driverId) {
+  const card = document.querySelector(`.cdrv[data-driver-id="${driverId}"]`);
+  if (!card) return;
+  const drv = confirmationState.drivers.find(d => d.id === driverId);
+  if (!drv || drv.status !== 'pending') return;
+
+  drv.status = 'confirmed';
+  drv.confirmedAt = Date.now();
+  const timeSince = formatTimeSince(drv.confirmedAt - drv.sentAt);
+
+  card.classList.remove('pending');
+  card.classList.add('confirmed');
+  card.querySelector('.cdrv-status').innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    Подтвердил · ${timeSince}
+  `;
+  card.querySelector('.cdrv-action').innerHTML = '';
+  clearInterval(cardTimerIntervals[driverId]);
+
+  confirmationState.confirmed++;
+  addActivity('confirm', `<b>${drv.name}</b> принял заявку · ${drv.city}`, 'только что');
+  updateProgress();
+}
+
+function markDeclined(driverId, reason) {
+  const card = document.querySelector(`.cdrv[data-driver-id="${driverId}"]`);
+  if (!card) return;
+  const drv = confirmationState.drivers.find(d => d.id === driverId);
+  if (!drv || drv.status !== 'pending') return;
+
+  drv.status = 'declined';
+  card.classList.remove('pending');
+  card.classList.add('declined');
+  card.querySelector('.cdrv-status').innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    Отказался · ${reason}
+  `;
+  card.querySelector('.cdrv-action').innerHTML = '';
+  clearInterval(cardTimerIntervals[driverId]);
+
+  addActivity('decline', `<b>${drv.name}</b> отклонил заявку · причина: ${reason}`, 'только что');
+
+  // Auto-escalate
+  setTimeout(() => escalateAfter(driverId), 1200);
+}
+
+function handleTimeout(driverId) {
+  markDeclined(driverId, 'таймаут 15 мин');
+}
+
+function escalateAfter(afterDriverId) {
+  const replacements = {
+    'SK': { id: 'RM', name: 'Рахимов Мурад', city: 'Самарканд', segments: 1, rating: 4.6 },
+    'ZU': { id: 'KN', name: 'Каримов Наим', city: 'Бухара', segments: 2, rating: 4.7 },
+    'YB': { id: 'HL', name: 'Халилов Лазиз', city: 'Хива', segments: 4, rating: 4.6 },
+    'AB': { id: 'NS', name: 'Назаров Санджар', city: 'Ташкент', segments: 4, rating: 4.7 }
+  };
+  const replacement = replacements[afterDriverId];
+  if (!replacement) return;
+
+  const afterCard = document.querySelector(`.cdrv[data-driver-id="${afterDriverId}"]`);
+  if (!afterCard) return;
+
+  // Escalation note
+  const note = document.createElement('div');
+  note.className = 'escalation-link';
+  note.innerHTML = `Автоэскалация: запрос отправлен следующему в рейтинге — <b>${replacement.name}</b> (★${replacement.rating})`;
+  afterCard.parentNode.insertBefore(note, afterCard.nextSibling);
+
+  addActivity('info', `<b>Автоэскалация</b>: запрос отправлен ${replacement.name} (рейтинг ${replacement.rating})`, 'только что');
+
+  // Add new card
+  setTimeout(() => {
+    replacement.status = 'pending';
+    replacement.sentAt = Date.now();
+    confirmationState.drivers.push(replacement);
+    const newCard = renderConfirmCard(replacement);
+    newCard.classList.add('fade-in');
+    note.parentNode.insertBefore(newCard, note.nextSibling);
+
+    // Simulate confirm after few seconds
+    setTimeout(() => markConfirmed(replacement.id), 3500);
+  }, 700);
+}
+
+function reassignDriver(driverId) {
+  const drv = confirmationState.drivers.find(d => d.id === driverId);
+  if (!drv || drv.status !== 'pending') return;
+  if (!confirm(`Переназначить ${drv.name}? Запрос уйдёт следующему водителю в рейтинге.`)) return;
+  markDeclined(driverId, 'переназначен диспетчером');
+}
+
+function simulateConfirmations() {
+  // Demo happy path: 3 confirm quickly, 1 declines, escalation picks up
+  setTimeout(() => markConfirmed('AB'), 1800);
+  setTimeout(() => markConfirmed('YB'), 3800);
+  setTimeout(() => markConfirmed('ZU'), 5800);
+  setTimeout(() => markDeclined('SK', 'занят другим заказом'), 7500);
+  // Rakhimov gets auto-assigned and confirms inside escalateAfter()
+}
+
+function completeRequest() {
+  toast('Заявка сохранена · водители получили финальные детали');
+  setTimeout(() => resetAll(), 1500);
+}
+
+async function saveSQL() {
+  if (!config.sqlEndpoint && config.demoMode) {
+    toast(`Сохранено в базу (демо) · ${DEMO_DATA.request_id}`);
+    return;
+  }
+  if (!config.sqlEndpoint) { toast('База данных не настроена', 'error'); return; }
+  toast('Сохраняем в базу...');
+}
+
+function resetAll() {
+  document.getElementById('step-2').style.display = 'none';
+  document.getElementById('step-3').style.display = 'none';
+  document.getElementById('step-4').style.display = 'none';
+  fi.value = '';
+  setSnav(1);
+  // cleanup timers
+  clearInterval(slaTimerInterval);
+  Object.values(cardTimerIntervals).forEach(i => clearInterval(i));
+  cardTimerIntervals = {};
+  confirmationState = null;
+  document.getElementById('step-1').scrollIntoView({ behavior: 'smooth' });
+}
+
+const drawer = document.getElementById('drawer');
+const backdrop = document.getElementById('backdrop');
+document.getElementById('open-settings').addEventListener('click', () => {
+  drawer.classList.add('on');
+  backdrop.classList.add('on');
+  loadSettings();
+});
+document.getElementById('close-drawer').addEventListener('click', closeDrawer);
+backdrop.addEventListener('click', closeDrawer);
+function closeDrawer() { drawer.classList.remove('on'); backdrop.classList.remove('on'); }
+
+function loadSettings() {
+  document.getElementById('n8n-url').value = config.n8nUrl;
+  document.getElementById('n8n-auth').value = config.n8nAuth;
+  document.getElementById('sql-endpoint').value = config.sqlEndpoint;
+  document.getElementById('sql-token').value = config.sqlToken;
+  document.getElementById('demo-toggle').classList.toggle('on', config.demoMode);
+}
+
+function saveSettings() {
+  config.n8nUrl = document.getElementById('n8n-url').value.trim();
+  config.n8nAuth = document.getElementById('n8n-auth').value.trim();
+  config.sqlEndpoint = document.getElementById('sql-endpoint').value.trim();
+  config.sqlToken = document.getElementById('sql-token').value.trim();
+  closeDrawer();
+  toast('Настройки сохранены');
+}
+
+function toggleDemo() {
+  const t = document.getElementById('demo-toggle');
+  t.classList.toggle('on');
+  config.demoMode = t.classList.contains('on');
+}
+
+async function testN8N() {
+  const url = document.getElementById('n8n-url').value.trim();
+  const r = document.getElementById('n8n-test');
+  r.className = 'tres on';
+  if (!url) { r.classList.add('err'); r.textContent = '✕ Адрес не указан'; return; }
+  try {
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 5000);
+    await fetch(url, { method: 'OPTIONS', signal: ctrl.signal });
+    r.classList.add('ok');
+    r.textContent = '✓ Соединение установлено';
+  } catch (e) {
+    r.classList.add('err');
+    r.textContent = '✕ ' + e.message;
+  }
+}
+
+async function testSQL() {
+  const url = document.getElementById('sql-endpoint').value.trim();
+  const r = document.getElementById('sql-test');
+  r.className = 'tres on';
+  if (!url) { r.classList.add('err'); r.textContent = '✕ Адрес не указан'; return; }
+  try {
+    const res = await fetch(url + '/health', { method: 'GET' });
+    r.classList.add(res.ok ? 'ok' : 'err');
+    r.textContent = res.ok ? '✓ База доступна' : '✕ HTTP ' + res.status;
+  } catch (e) {
+    r.classList.add('err');
+    r.textContent = '✕ ' + e.message;
+  }
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => t.classList.remove('show'), 5000);
+}
+</script>
+
+</body>
+</html>
