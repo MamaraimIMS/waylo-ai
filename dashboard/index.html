@@ -135,6 +135,7 @@ button { font-family: inherit; }
   color: var(--ink-2);
   cursor: pointer;
   transition: all 0.15s;
+  text-decoration: none;
 }
 
 .header-btn:hover {
@@ -1848,6 +1849,10 @@ button { font-family: inherit; }
     </div>
   </div>
   <div class="header-right">
+    <a class="header-btn" href="../admin/">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="7" r="2"/></svg>
+      <span>Автопарк</span>
+    </a>
     <button class="header-btn" id="open-settings">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       <span>Настройки</span>
@@ -2190,44 +2195,12 @@ button { font-family: inherit; }
 <aside class="drawer" id="drawer">
   <div class="drawer-head">
     <div>
-      <h3>Настройки подключения</h3>
-      <p>Привяжите свой n8n workflow и базу данных</p>
+      <h3>Настройки</h3>
+      <p>Поведение системы и модель ИИ</p>
     </div>
     <button class="x-btn" id="close-drawer">✕</button>
   </div>
   <div class="drawer-body">
-
-    <div class="conn-section">
-      <h4>n8n Workflow</h4>
-      <div class="section-hint">Автоматизация приёма документов и вызова ИИ. Настройте адрес вашего webhook.</div>
-      <div class="ff">
-        <label>URL webhook</label>
-        <input type="url" id="n8n-url" placeholder="https://n8n.example.com/webhook/waylo-intake">
-        <div class="h">Тип запроса: POST · формат: multipart/form-data</div>
-      </div>
-      <div class="ff">
-        <label>Токен авторизации (необязательно)</label>
-        <input type="password" id="n8n-auth" placeholder="Bearer ...">
-      </div>
-      <button class="btn" style="height:34px" onclick="testN8N()">Проверить соединение</button>
-      <div class="tres" id="n8n-test"></div>
-    </div>
-
-    <div class="conn-section">
-      <h4>База данных PostgreSQL</h4>
-      <div class="section-hint">Хранит заявки, водителей, назначения и календарь занятости.</div>
-      <div class="ff">
-        <label>API-адрес</label>
-        <input type="url" id="sql-endpoint" placeholder="https://api.example.com/v1">
-        <div class="h">Совместимо с Supabase · PostgREST · NestJS</div>
-      </div>
-      <div class="ff">
-        <label>Токен доступа</label>
-        <input type="password" id="sql-token" placeholder="eyJhbGc...">
-      </div>
-      <button class="btn" style="height:34px" onclick="testSQL()">Проверить соединение</button>
-      <div class="tres" id="sql-test"></div>
-    </div>
 
     <div class="conn-section">
       <h4>Поведение системы</h4>
@@ -2329,15 +2302,21 @@ const DEMO_DATA = {
 
 const CITIES = { tashkent:'Ташкент', khiva:'Хива', bukhara:'Бухара', samarkand:'Самарканд', urganch:'Ургенч' };
 
+// =========================
+// PLATFORM CONFIG (hardcoded — not visible to DMC)
+// =========================
+const PLATFORM_CONFIG = {
+  n8nUrl: 'https://alphagroupuz.app.n8n.cloud/webhook/waylo-intake',
+  n8nAuth: '',
+  sqlEndpoint: 'https://kbvcetuscbbnaeztxenn.supabase.co',
+  sqlToken: 'REPLACE_WITH_YOUR_ANON_KEY'
+};
+
 const config = {
-  get n8nUrl() { return localStorage.getItem('waylo_n8n_url') || ''; },
-  set n8nUrl(v) { localStorage.setItem('waylo_n8n_url', v); },
-  get n8nAuth() { return localStorage.getItem('waylo_n8n_auth') || ''; },
-  set n8nAuth(v) { localStorage.setItem('waylo_n8n_auth', v); },
-  get sqlEndpoint() { return localStorage.getItem('waylo_sql_endpoint') || ''; },
-  set sqlEndpoint(v) { localStorage.setItem('waylo_sql_endpoint', v); },
-  get sqlToken() { return localStorage.getItem('waylo_sql_token') || ''; },
-  set sqlToken(v) { localStorage.setItem('waylo_sql_token', v); },
+  get n8nUrl() { return PLATFORM_CONFIG.n8nUrl; },
+  get n8nAuth() { return PLATFORM_CONFIG.n8nAuth; },
+  get sqlEndpoint() { return PLATFORM_CONFIG.sqlEndpoint; },
+  get sqlToken() { return PLATFORM_CONFIG.sqlToken; },
   get demoMode() { return localStorage.getItem('waylo_demo') !== 'false'; },
   set demoMode(v) { localStorage.setItem('waylo_demo', v); }
 };
@@ -2892,18 +2871,11 @@ backdrop.addEventListener('click', closeDrawer);
 function closeDrawer() { drawer.classList.remove('on'); backdrop.classList.remove('on'); }
 
 function loadSettings() {
-  document.getElementById('n8n-url').value = config.n8nUrl;
-  document.getElementById('n8n-auth').value = config.n8nAuth;
-  document.getElementById('sql-endpoint').value = config.sqlEndpoint;
-  document.getElementById('sql-token').value = config.sqlToken;
   document.getElementById('demo-toggle').classList.toggle('on', config.demoMode);
 }
 
 function saveSettings() {
-  config.n8nUrl = document.getElementById('n8n-url').value.trim();
-  config.n8nAuth = document.getElementById('n8n-auth').value.trim();
-  config.sqlEndpoint = document.getElementById('sql-endpoint').value.trim();
-  config.sqlToken = document.getElementById('sql-token').value.trim();
+  // Only demoMode persists — everything else is platform-controlled
   closeDrawer();
   toast('Настройки сохранены');
 }
@@ -2912,38 +2884,6 @@ function toggleDemo() {
   const t = document.getElementById('demo-toggle');
   t.classList.toggle('on');
   config.demoMode = t.classList.contains('on');
-}
-
-async function testN8N() {
-  const url = document.getElementById('n8n-url').value.trim();
-  const r = document.getElementById('n8n-test');
-  r.className = 'tres on';
-  if (!url) { r.classList.add('err'); r.textContent = '✕ Адрес не указан'; return; }
-  try {
-    const ctrl = new AbortController();
-    setTimeout(() => ctrl.abort(), 5000);
-    await fetch(url, { method: 'OPTIONS', signal: ctrl.signal });
-    r.classList.add('ok');
-    r.textContent = '✓ Соединение установлено';
-  } catch (e) {
-    r.classList.add('err');
-    r.textContent = '✕ ' + e.message;
-  }
-}
-
-async function testSQL() {
-  const url = document.getElementById('sql-endpoint').value.trim();
-  const r = document.getElementById('sql-test');
-  r.className = 'tres on';
-  if (!url) { r.classList.add('err'); r.textContent = '✕ Адрес не указан'; return; }
-  try {
-    const res = await fetch(url + '/health', { method: 'GET' });
-    r.classList.add(res.ok ? 'ok' : 'err');
-    r.textContent = res.ok ? '✓ База доступна' : '✕ HTTP ' + res.status;
-  } catch (e) {
-    r.classList.add('err');
-    r.textContent = '✕ ' + e.message;
-  }
 }
 
 function toast(msg) {
