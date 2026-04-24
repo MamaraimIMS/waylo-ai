@@ -1359,8 +1359,17 @@ button { font-family: inherit; border: none; cursor: pointer; }
 <!-- Telegram Mini App SDK — даёт Telegram.WebApp -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<!-- Supabase JS SDK (jsdelivr — более надёжный CDN чем unpkg) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<!-- Supabase JS SDK (основной путь) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Fallback если jsdelivr заблокирован или недоступен -->
+<script>
+  if (typeof window.supabase === 'undefined') {
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/@supabase/supabase-js@2';
+    s.async = false;
+    document.head.appendChild(s);
+  }
+</script>
 
 </head>
 <body>
@@ -1894,8 +1903,8 @@ const REASON_META = {
     setSplashSub('Создание сессии…');
 
     // 3. Обмениваем token_hash на Supabase session
+    //    В новой версии supabase-js при использовании token_hash email передавать НЕ НУЖНО
     const { data: sessionData, error: sessionErr } = await supabase.auth.verifyOtp({
-      email: authData.email,
       token_hash: authData.token_hash,
       type: 'magiclink',
     });
