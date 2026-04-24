@@ -1166,9 +1166,225 @@ button { font-family: inherit; border: none; cursor: pointer; }
   font-weight: 700;
   flex-shrink: 0;
 }
+
+/* ═══ LOADING SCREEN ═══ */
+.splash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.3s;
+}
+.splash.hidden { opacity: 0; pointer-events: none; }
+.splash-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.splash-title { font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.splash-sub { font-size: 13px; color: var(--ink-3); margin-bottom: 20px; }
+.splash-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--primary-soft);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.splash-err {
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-radius: 12px;
+  font-size: 13px;
+  max-width: 280px;
+  text-align: center;
+  display: none;
+}
+.splash-err.show { display: block; }
+.splash-err-btn {
+  margin-top: 10px;
+  background: var(--danger);
+  color: #fff;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ═══ CALENDAR DAY MODAL ═══ */
+.cal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.cal-modal-backdrop.on { opacity: 1; pointer-events: auto; }
+.cal-modal {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 18px 30px;
+  z-index: 101;
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.cal-modal.on { transform: translateX(-50%) translateY(0); }
+.cal-modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin: 0 auto 14px;
+}
+.cal-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.cal-modal-sub {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin-bottom: 18px;
+}
+.cal-reason-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.cal-reason-btn {
+  background: var(--surface-2);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  padding: 14px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.cal-reason-btn .rb-icon { font-size: 20px; }
+.cal-reason-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.cal-note-input {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+  resize: none;
+  min-height: 60px;
+  margin-bottom: 14px;
+}
+.cal-note-input:focus { border-color: var(--primary); outline: none; }
+.cal-modal-actions {
+  display: flex;
+  gap: 8px;
+}
+.cal-modal-actions button {
+  flex: 1;
+  height: 46px;
+  border-radius: 12px;
+  border: 0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cal-btn-primary { background: var(--primary); color: #fff; }
+.cal-btn-danger { background: var(--danger-soft); color: var(--danger); }
+.cal-btn-secondary { background: var(--surface-2); color: var(--ink-2); }
+
+/* ═══ BOOKING INFO for booked day ═══ */
+.booking-info {
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.bi-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.bi-row .k { color: var(--ink-3); }
+.bi-row .v { color: var(--ink); font-weight: 600; text-align: right; }
+.bi-other-dmc {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--ink-3);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
 </style>
+
+<!-- Telegram Mini App SDK — даёт Telegram.WebApp -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- Supabase JS SDK -->
+<script src="https://unpkg.com/@supabase/supabase-js@2.39.0"></script>
+
 </head>
 <body>
+
+<!-- ═══ SPLASH / LOADING SCREEN ═══ -->
+<div class="splash" id="splash">
+  <div class="splash-logo">W</div>
+  <div class="splash-title">Waylo Driver</div>
+  <div class="splash-sub" id="splash-sub">Подключаемся к серверу…</div>
+  <div class="splash-spinner" id="splash-spinner"></div>
+  <div class="splash-err" id="splash-err">
+    <div id="splash-err-msg">Ошибка авторизации</div>
+    <button class="splash-err-btn" onclick="location.reload()">Повторить</button>
+  </div>
+</div>
+
+<!-- ═══ CALENDAR DAY MODAL ═══ -->
+<div class="cal-modal-backdrop" id="cal-modal-backdrop" onclick="closeCalModal()"></div>
+<div class="cal-modal" id="cal-modal">
+  <div class="cal-modal-handle"></div>
+  <div class="cal-modal-title" id="cal-modal-title">— мая</div>
+  <div class="cal-modal-sub" id="cal-modal-sub">Свободен</div>
+  <div id="cal-modal-body"></div>
+</div>
 
 <div class="phone">
 
@@ -1382,78 +1598,6 @@ button { font-family: inherit; border: none; cursor: pointer; }
       </div>
     </div>
 
-    <!-- ═══════════ VIEW: HISTORY ═══════════ -->
-    <div class="view" id="view-history">
-
-      <div class="stats-row">
-        <div class="stat-tile">
-          <div class="v">28</div>
-          <div class="l">Поездок</div>
-        </div>
-        <div class="stat-tile">
-          <div class="v">84</div>
-          <div class="l">Сегментов</div>
-        </div>
-        <div class="stat-tile">
-          <div class="v">4.9<span class="u">★</span></div>
-          <div class="l">Рейтинг</div>
-        </div>
-      </div>
-
-      <div class="section-title">Апрель 2026</div>
-
-      <div class="history-item">
-        <div class="history-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="history-content">
-          <div class="history-title">Martin P., Германия</div>
-          <div class="history-meta">28 апр · Ташкент · 4 сегмента</div>
-        </div>
-      </div>
-
-      <div class="history-item">
-        <div class="history-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="history-content">
-          <div class="history-title">Yamada K., Япония</div>
-          <div class="history-meta">25 апр · Ташкент · 2 сегмента</div>
-        </div>
-      </div>
-
-      <div class="history-item">
-        <div class="history-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="history-content">
-          <div class="history-title">Brown family, Австралия</div>
-          <div class="history-meta">22-24 апр · 3 дня · 7 сегментов</div>
-        </div>
-      </div>
-
-      <div class="history-item">
-        <div class="history-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="history-content">
-          <div class="history-title">Lee J., Южная Корея</div>
-          <div class="history-meta">18 апр · Ташкент · 3 сегмента</div>
-        </div>
-      </div>
-
-      <div class="history-item">
-        <div class="history-icon">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="history-content">
-          <div class="history-title">Dubois L., Франция</div>
-          <div class="history-meta">14 апр · Ташкент · 1 сегмент</div>
-        </div>
-      </div>
-
-    </div>
-
     <!-- ═══════════ VIEW: PROFILE ═══════════ -->
     <div class="view" id="view-profile">
 
@@ -1560,12 +1704,6 @@ button { font-family: inherit; border: none; cursor: pointer; }
         </div>
         <span class="bnav-label">Календарь</span>
       </button>
-      <button class="bnav-tab" data-view="history" onclick="switchView('history')">
-        <div class="bnav-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="12" y1="12" x2="15" y2="15"/></svg>
-        </div>
-        <span class="bnav-label">История</span>
-      </button>
       <button class="bnav-tab" data-view="profile" onclick="switchView('profile')">
         <div class="bnav-icon">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1660,16 +1798,567 @@ button { font-family: inherit; border: none; cursor: pointer; }
 </div>
 
 <script>
-// ════════════ VIEW SWITCHING ════════════
+// ═══════════════════════════════════════════════════════════
+// WayloAI · Driver Mini App
+// Telegram Mini App + Supabase integration
+// ═══════════════════════════════════════════════════════════
+
+// --- Platform config (hardcoded) ---
+const SUPABASE_URL = 'https://kbvcetuscbbnaeztxenn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtidmNldHVzY2JibmFlenR4ZW5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzE3NTIsImV4cCI6MjA5MjQwNzc1Mn0.EM9bWi3UMLcp5cj60226rVCbkI0ZLlY5XAlSJYBe8Pc';
+const TELEGRAM_AUTH_ENDPOINT = SUPABASE_URL + '/functions/v1/telegram-auth';
+
+// --- Telegram Web App init ---
+const TG = window.Telegram?.WebApp;
+if (TG) {
+  TG.ready();
+  TG.expand();
+  try { TG.setHeaderColor('secondary_bg_color'); } catch(e) {}
+  try { TG.setBackgroundColor('#FAFAF7'); } catch(e) {}
+}
+
+// --- Supabase client ---
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// --- Global state ---
+const state = {
+  driver: null,        // { id, full_name, phone, ... }
+  user: null,          // public.users row
+  dmc: null,           // dmc_companies row (my DMC)
+  vehicle: null,       // vehicles row
+  calendar: {
+    year: new Date().getFullYear(),
+    month: new Date().getMonth(), // 0-11
+    slots: new Map(),   // key = "YYYY-MM-DD" → slot row
+  },
+  selectedDate: null,
+  selectedReason: null,
+};
+
+const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONTH_NAMES_SHORT = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+const WEEKDAYS_SHORT = ['пн','вт','ср','чт','пт','сб','вс'];
+
+const REASON_META = {
+  sick: { icon: '🤒', label: 'Болезнь' },
+  vacation: { icon: '🏖️', label: 'Отпуск' },
+  personal: { icon: '📌', label: 'Личные дела' },
+  maintenance: { icon: '🔧', label: 'ТО авто' },
+  other: { icon: '💬', label: 'Другое' },
+};
+
+// ═══════════════════════════════════════════════════════════
+// BOOT SEQUENCE
+// ═══════════════════════════════════════════════════════════
+
+(async function boot() {
+  try {
+    // 1. Check Telegram Mini App context
+    if (!TG || !TG.initData) {
+      // Открыли не через Telegram — работаем в "demo" режиме
+      showSplashError('Откройте это приложение через Telegram-бота Waylo Driver.');
+      return;
+    }
+
+    setSplashSub('Авторизация через Telegram…');
+
+    // 2. POST initData → telegram-auth → получаем token_hash
+    const authRes = await fetch(TELEGRAM_AUTH_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({ init_data: TG.initData }),
+    });
+
+    const authData = await authRes.json();
+
+    if (!authData.ok) {
+      if (authData.error === 'not_registered') {
+        showSplashError('Номер не привязан. Откройте бота и нажмите /start, затем поделитесь контактом.');
+      } else if (authData.error === 'driver_not_found') {
+        showSplashError('Ваш номер не найден в системе. Обратитесь в DMC-компанию.');
+      } else if (authData.error === 'invalid_init_data') {
+        showSplashError('Не удалось подтвердить подпись Telegram. Откройте приложение заново из бота.');
+      } else {
+        showSplashError('Ошибка входа: ' + (authData.error || 'unknown'));
+      }
+      return;
+    }
+
+    setSplashSub('Создание сессии…');
+
+    // 3. Обмениваем token_hash на Supabase session
+    const { data: sessionData, error: sessionErr } = await supabase.auth.verifyOtp({
+      email: authData.email,
+      token_hash: authData.token_hash,
+      type: 'magiclink',
+    });
+
+    if (sessionErr || !sessionData.session) {
+      console.error('verifyOtp error:', sessionErr);
+      showSplashError('Не удалось создать сессию: ' + (sessionErr?.message || 'unknown'));
+      return;
+    }
+
+    setSplashSub('Загружаем ваш профиль…');
+
+    // 4. Загружаем данные водителя
+    await loadDriverData(authData.driver_id);
+
+    // 5. Загружаем календарь на текущий месяц
+    await loadCalendar();
+
+    // 6. Приветствие + UI
+    renderProfile();
+    renderGreeting();
+    renderCalendar();
+
+    // 7. Скрыть splash
+    hideSplash();
+  } catch (e) {
+    console.error('Boot error:', e);
+    showSplashError('Ошибка загрузки: ' + (e.message || e));
+  }
+})();
+
+function setSplashSub(text) {
+  document.getElementById('splash-sub').textContent = text;
+}
+function showSplashError(msg) {
+  document.getElementById('splash-spinner').style.display = 'none';
+  document.getElementById('splash-sub').style.display = 'none';
+  const err = document.getElementById('splash-err');
+  document.getElementById('splash-err-msg').textContent = msg;
+  err.classList.add('show');
+}
+function hideSplash() {
+  const sp = document.getElementById('splash');
+  sp.classList.add('hidden');
+  setTimeout(() => sp.remove(), 400);
+}
+
+// ═══════════════════════════════════════════════════════════
+// DATA LOADERS
+// ═══════════════════════════════════════════════════════════
+
+async function loadDriverData(driverId) {
+  // Водитель
+  const { data: driver, error: de } = await supabase
+    .from('drivers')
+    .select('*')
+    .eq('id', driverId)
+    .single();
+  if (de) throw de;
+  state.driver = driver;
+
+  // Связанный user
+  if (driver.user_id) {
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', driver.user_id)
+      .single();
+    state.user = user;
+  }
+
+  // Машина (первая активная)
+  const { data: vehicles } = await supabase
+    .from('vehicles')
+    .select('*')
+    .eq('driver_id', driverId)
+    .limit(1);
+  if (vehicles && vehicles.length) {
+    state.vehicle = vehicles[0];
+  }
+
+  // DMC — своя
+  if (state.user?.dmc_id) {
+    const { data: dmc } = await supabase
+      .from('dmc_companies')
+      .select('*')
+      .eq('id', state.user.dmc_id)
+      .single();
+    state.dmc = dmc;
+  }
+}
+
+async function loadCalendar() {
+  const { year, month } = state.calendar;
+  const firstDay = new Date(year, month, 1).toISOString().slice(0, 10);
+  const lastDay = new Date(year, month + 1, 0).toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from('calendar_slots_safe')
+    .select('*')
+    .eq('driver_id', state.driver.id)
+    .gte('slot_date', firstDay)
+    .lte('slot_date', lastDay);
+
+  if (error) {
+    console.error('loadCalendar error:', error);
+    state.calendar.slots = new Map();
+    return;
+  }
+
+  const map = new Map();
+  for (const row of data || []) {
+    map.set(row.slot_date, row);
+  }
+  state.calendar.slots = map;
+}
+
+// ═══════════════════════════════════════════════════════════
+// UI RENDERING
+// ═══════════════════════════════════════════════════════════
+
+function renderGreeting() {
+  // Обновляем имя в топбаре
+  const nameEl = document.querySelector('.greeting .name');
+  if (nameEl && state.driver) {
+    const firstName = (state.driver.full_name || '').split(' ')[0] || 'Водитель';
+    nameEl.innerHTML = firstName + ' <span class="ai-dot">·</span> ' + (state.dmc?.name || 'WayloAI');
+  }
+
+  // Приветствие по времени
+  const hi = document.querySelector('.greeting .hi');
+  if (hi) {
+    const h = new Date().getHours();
+    hi.textContent = h < 6 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер';
+  }
+}
+
+function renderProfile() {
+  // Placeholder — старый шаблон профиля использует статические данные
+  // Здесь можно обновить ключевые элементы
+  try {
+    const pfFields = document.querySelectorAll('#view-profile .pf-field');
+    if (pfFields.length && state.driver) {
+      // Field mapping зависит от разметки старого шаблона. Для MVP просто ставим ФИО в первый .pf-name если есть
+    }
+    const nameHolders = document.querySelectorAll('#view-profile .pf-name, #view-profile .driver-name');
+    nameHolders.forEach(el => { if (state.driver) el.textContent = state.driver.full_name; });
+  } catch (e) { console.warn('renderProfile minor err', e); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDAR RENDERING
+// ═══════════════════════════════════════════════════════════
+
+function renderCalendar() {
+  const grid = document.getElementById('calendar-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  // Заголовки недели
+  ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => {
+    const h = document.createElement('div');
+    h.className = 'cal-day-head';
+    h.textContent = d;
+    grid.appendChild(h);
+  });
+
+  const { year, month } = state.calendar;
+  const firstOfMonth = new Date(year, month, 1);
+  const jsDay = firstOfMonth.getDay(); // 0=Sun..6=Sat
+  const firstDay = jsDay === 0 ? 6 : jsDay - 1; // Monday=0
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let i = 0; i < firstDay; i++) {
+    const c = document.createElement('div');
+    c.className = 'cal-cell other';
+    grid.appendChild(c);
+  }
+
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
+
+  let bookedCount = 0, blockedCount = 0, freeCount = 0;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const c = document.createElement('div');
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const slot = state.calendar.slots.get(dateStr);
+
+    let cls = 'free';
+    if (slot) {
+      if (slot.status === 'booked') { cls = 'booked'; bookedCount++; }
+      else if (slot.status === 'blocked') { cls = 'busy'; blockedCount++; }
+      else if (slot.status === 'tentative') { cls = 'busy'; blockedCount++; }
+      else freeCount++;
+    } else {
+      freeCount++;
+    }
+
+    c.className = 'cal-cell ' + cls;
+    if (dateStr === todayStr) c.classList.add('today');
+    c.textContent = d;
+    c.dataset.date = dateStr;
+    c.onclick = () => openDayModal(dateStr);
+    grid.appendChild(c);
+  }
+
+  // Обновить надпись месяца
+  const label = document.querySelector('.cal-month-label');
+  if (label) label.textContent = MONTH_NAMES[month] + ' ' + year;
+
+  // Обновить статистику
+  const tiles = document.querySelectorAll('#view-calendar .stat-tile .v');
+  if (tiles.length >= 3) {
+    tiles[0].textContent = bookedCount;
+    tiles[1].textContent = freeCount;
+    tiles[2].textContent = blockedCount;
+  }
+
+  // Стрелки навигации
+  const arrows = document.querySelectorAll('.cal-arrow-btn');
+  if (arrows.length >= 2) {
+    arrows[0].onclick = () => shiftMonth(-1);
+    arrows[1].onclick = () => shiftMonth(+1);
+  }
+
+  // Список забронированных дней (перерендер)
+  renderBookedTripsList();
+}
+
+async function shiftMonth(delta) {
+  state.calendar.month += delta;
+  if (state.calendar.month < 0) { state.calendar.month = 11; state.calendar.year--; }
+  else if (state.calendar.month > 11) { state.calendar.month = 0; state.calendar.year++; }
+  await loadCalendar();
+  renderCalendar();
+}
+
+function renderBookedTripsList() {
+  const list = document.getElementById('booked-trips-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  const bookedSlots = [...state.calendar.slots.values()]
+    .filter(s => s.status === 'booked')
+    .sort((a, b) => a.slot_date.localeCompare(b.slot_date));
+
+  if (!bookedSlots.length) {
+    list.innerHTML = '<div style="padding:18px;text-align:center;color:var(--ink-3);font-size:13px">На этот месяц броней нет</div>';
+    return;
+  }
+
+  for (const slot of bookedSlots) {
+    const [y, m, d] = slot.slot_date.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const weekday = WEEKDAYS_SHORT[(date.getDay() + 6) % 7];
+    const div = document.createElement('div');
+    div.className = 'trip';
+    const canSeeDetails = !!slot.assignment_id; // assignment_id видно только своей DMC
+    div.innerHTML = `
+      <div class="trip-date">
+        <div class="month">${MONTH_NAMES_SHORT[m - 1]}</div>
+        <div class="day-num">${d}</div>
+        <div class="weekday">${weekday}</div>
+      </div>
+      <div class="trip-content">
+        <div class="trip-tour">${canSeeDetails ? 'Забронировано' : 'Занято (другая DMC)'}</div>
+        <div class="trip-meta">${canSeeDetails ? 'Детали в заявке' : 'Детали скрыты'}</div>
+      </div>
+      <div class="trip-tail">
+        <span class="trip-status confirmed">Бронь</span>
+      </div>
+    `;
+    div.onclick = () => openDayModal(slot.slot_date);
+    list.appendChild(div);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDAR DAY MODAL
+// ═══════════════════════════════════════════════════════════
+
+function openDayModal(dateStr) {
+  state.selectedDate = dateStr;
+  const slot = state.calendar.slots.get(dateStr);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const monthRu = MONTH_NAMES_SHORT[m - 1];
+
+  document.getElementById('cal-modal-title').textContent = `${d} ${monthRu} ${y}`;
+
+  const body = document.getElementById('cal-modal-body');
+  const sub = document.getElementById('cal-modal-sub');
+
+  if (!slot || slot.status === 'free') {
+    sub.textContent = 'Свободный день';
+    body.innerHTML = renderBlockForm(null);
+    bindReasonHandlers();
+  } else if (slot.status === 'blocked') {
+    sub.textContent = 'Заблокирован вами';
+    body.innerHTML = renderBlockForm(slot);
+    bindReasonHandlers();
+  } else if (slot.status === 'booked' || slot.status === 'tentative') {
+    sub.textContent = slot.status === 'tentative' ? 'Предварительное удержание' : 'Подтверждённая бронь';
+    body.innerHTML = renderBookedInfo(slot);
+    bindCancellationHandler(slot);
+  }
+
+  document.getElementById('cal-modal-backdrop').classList.add('on');
+  document.getElementById('cal-modal').classList.add('on');
+}
+
+function closeCalModal() {
+  document.getElementById('cal-modal-backdrop').classList.remove('on');
+  document.getElementById('cal-modal').classList.remove('on');
+  state.selectedDate = null;
+  state.selectedReason = null;
+}
+
+function renderBlockForm(slot) {
+  const existingReason = slot?.reason_code;
+  const existingNote = slot?.reason_note || '';
+  state.selectedReason = existingReason || null;
+
+  const reasonButtons = Object.entries(REASON_META).map(([code, m]) => `
+    <button type="button" class="cal-reason-btn ${code === existingReason ? 'active' : ''}" data-reason="${code}">
+      <span class="rb-icon">${m.icon}</span>
+      <span>${m.label}</span>
+    </button>
+  `).join('');
+
+  return `
+    <div class="cal-reason-grid">${reasonButtons}</div>
+    <textarea class="cal-note-input" id="cal-note" placeholder="Комментарий (необязательно)">${existingNote}</textarea>
+    <div class="cal-modal-actions">
+      ${slot ? `<button class="cal-btn-danger" onclick="unblockDay()">Разблокировать</button>` : ''}
+      <button class="cal-btn-secondary" onclick="closeCalModal()">Отмена</button>
+      <button class="cal-btn-primary" onclick="saveBlockDay()">${slot ? 'Сохранить' : 'Заблокировать'}</button>
+    </div>
+  `;
+}
+
+function renderBookedInfo(slot) {
+  if (!slot.assignment_id) {
+    // Чужая DMC — нет прав смотреть детали
+    return `
+      <div class="bi-other-dmc">
+        🔒 Бронь другой DMC-компании.<br>
+        Детали заявки вам не показаны, но день занят.
+      </div>
+      <div class="cal-modal-actions">
+        <button class="cal-btn-secondary" onclick="closeCalModal()">Закрыть</button>
+      </div>
+    `;
+  }
+  return `
+    <div class="booking-info">
+      <div class="bi-row"><span class="k">ID заявки</span><span class="v">${slot.assignment_id.slice(0, 8)}…</span></div>
+      <div class="bi-row"><span class="k">Статус</span><span class="v">Подтверждена</span></div>
+    </div>
+    <div class="cal-modal-actions">
+      <button class="cal-btn-secondary" onclick="closeCalModal()">Закрыть</button>
+      <button class="cal-btn-danger" onclick="requestCancellation('${slot.id}','${slot.assignment_id}')">Запросить отмену</button>
+    </div>
+  `;
+}
+
+function bindReasonHandlers() {
+  document.querySelectorAll('.cal-reason-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.cal-reason-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.selectedReason = btn.dataset.reason;
+    };
+  });
+}
+
+function bindCancellationHandler(slot) {
+  // noop — inline onclick в renderBookedInfo
+}
+
+async function saveBlockDay() {
+  if (!state.selectedReason) {
+    toast('Выберите причину блокировки', 'error');
+    return;
+  }
+  const note = document.getElementById('cal-note')?.value?.trim() || null;
+  const dateStr = state.selectedDate;
+
+  // Upsert в calendar_slots
+  const existing = state.calendar.slots.get(dateStr);
+  let payload = {
+    driver_id: state.driver.id,
+    slot_date: dateStr,
+    status: 'blocked',
+    reason_code: state.selectedReason,
+    reason_note: note,
+  };
+
+  const { error } = existing
+    ? await supabase.from('calendar_slots').update(payload).eq('id', existing.id)
+    : await supabase.from('calendar_slots').insert(payload);
+
+  if (error) {
+    console.error(error);
+    toast('Ошибка: ' + error.message, 'error');
+    return;
+  }
+
+  await loadCalendar();
+  renderCalendar();
+  closeCalModal();
+  toast('День заблокирован', 'success');
+}
+
+async function unblockDay() {
+  const dateStr = state.selectedDate;
+  const slot = state.calendar.slots.get(dateStr);
+  if (!slot) { closeCalModal(); return; }
+
+  const { error } = await supabase.from('calendar_slots').delete().eq('id', slot.id);
+  if (error) {
+    toast('Ошибка разблокировки: ' + error.message, 'error');
+    return;
+  }
+
+  await loadCalendar();
+  renderCalendar();
+  closeCalModal();
+  toast('День снова свободен', 'success');
+}
+
+async function requestCancellation(slotId, assignmentId) {
+  if (!confirm('Отправить запрос на снятие брони? DMC должна подтвердить перенаправление заявки.')) return;
+  const reasonText = prompt('Укажите причину (кратко):') || '';
+
+  const { error } = await supabase.from('cancellation_requests').insert({
+    slot_id: slotId,
+    driver_id: state.driver.id,
+    assignment_id: assignmentId,
+    requesting_dmc_id: state.user.dmc_id,
+    reason_text: reasonText,
+    status: 'pending',
+  });
+
+  if (error) {
+    toast('Не удалось создать запрос: ' + error.message, 'error');
+    return;
+  }
+
+  closeCalModal();
+  toast('Запрос отправлен — ждём ответа DMC', 'success');
+}
+
+// ═══════════════════════════════════════════════════════════
+// VIEW SWITCHING (без изменений)
+// ═══════════════════════════════════════════════════════════
+
 function switchView(viewName) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.bnav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('view-' + viewName).classList.add('active');
-  document.querySelector(`.bnav-tab[data-view="${viewName}"]`).classList.add('active');
+  const view = document.getElementById('view-' + viewName);
+  if (view) view.classList.add('active');
+  document.querySelector(`.bnav-tab[data-view="${viewName}"]`)?.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
-// ════════════ SHIFT TOGGLE ════════════
+// ═══════════════════════════════════════════════════════════
+// SHIFT TOGGLE + TOAST (остаются как были)
+// ═══════════════════════════════════════════════════════════
+
 function toggleShift() {
   const t = document.getElementById('shift-toggle');
   const txt = document.getElementById('shift-text');
@@ -1678,206 +2367,58 @@ function toggleShift() {
   toast(t.classList.contains('off') ? 'Вы вышли из смены' : 'Вы на смене');
 }
 
-// ════════════ REQUEST TIMER ════════════
-let requestEndTime = Date.now() + 14 * 60 * 1000 + 47 * 1000; // 14:47
-let requestTimerInterval = setInterval(() => {
-  const remaining = requestEndTime - Date.now();
-  const el = document.getElementById('request-timer');
-  if (!el) { clearInterval(requestTimerInterval); return; }
-  if (remaining <= 0) {
-    el.textContent = '00:00';
-    clearInterval(requestTimerInterval);
-    removeIncomingRequest('timeout');
-    return;
-  }
-  const totalSec = Math.floor(remaining / 1000);
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  el.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}, 1000);
-
-// ════════════ DECLINE SHEET ════════════
-let selectedReason = null;
-
-function showDeclineSheet() {
-  document.getElementById('decline-backdrop').classList.add('on');
-  document.getElementById('decline-sheet').classList.add('on');
-  selectedReason = null;
-  document.querySelectorAll('.reason-item').forEach(r => r.classList.remove('selected'));
-  document.getElementById('confirm-decline-btn').style.opacity = '0.5';
-  document.getElementById('confirm-decline-btn').style.pointerEvents = 'none';
-}
-
-function closeDeclineSheet() {
-  document.getElementById('decline-backdrop').classList.remove('on');
-  document.getElementById('decline-sheet').classList.remove('on');
-}
-
-function selectReason(el) {
-  document.querySelectorAll('.reason-item').forEach(r => r.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedReason = el.dataset.reason;
-  const btn = document.getElementById('confirm-decline-btn');
-  btn.style.opacity = '1';
-  btn.style.pointerEvents = 'auto';
-}
-
-function confirmDecline() {
-  if (!selectedReason) return;
-  closeDeclineSheet();
-  removeIncomingRequest('declined');
-  toast('Отказ отправлен — диспетчер найдёт замену', 'success');
-}
-
-// ════════════ ACCEPT SHEET ════════════
-function showAcceptSheet() {
-  document.getElementById('accept-backdrop').classList.add('on');
-  document.getElementById('accept-sheet').classList.add('on');
-}
-
-function closeAcceptSheet() {
-  document.getElementById('accept-backdrop').classList.remove('on');
-  document.getElementById('accept-sheet').classList.remove('on');
-}
-
-function confirmAccept() {
-  closeAcceptSheet();
-  removeIncomingRequest('accepted');
-
-  // Mark May 11 as booked in calendar
-  if (!calendarBooked.includes(11)) {
-    calendarBooked.push(11);
-    calendarBooked.sort((a, b) => a - b);
-    renderCalendar();
-  }
-
-  // Add to Calendar view's booked-trips-list (at the top, before May 13)
-  const bookedList = document.getElementById('booked-trips-list');
-  if (bookedList) {
-    const calTrip = document.createElement('div');
-    calTrip.className = 'trip';
-    calTrip.style.animation = 'slideIn 0.35s ease';
-    calTrip.innerHTML = `
-      <div class="trip-date">
-        <div class="month">май</div>
-        <div class="day-num">11</div>
-        <div class="weekday">пн</div>
-      </div>
-      <div class="trip-content">
-        <div class="trip-tour">Hugo Villar, USA</div>
-        <div class="trip-meta">Ташкент · 4 сегмента</div>
-      </div>
-      <div class="trip-tail">
-        <span class="trip-status confirmed">Подтверждено</span>
-      </div>
-    `;
-    bookedList.insertBefore(calTrip, bookedList.firstChild);
-  }
-
-  // Add to Home upcoming trips
-  const upcomingSection = document.querySelector('.section-title');
-  const tripEl = document.createElement('div');
-  tripEl.className = 'trip';
-  tripEl.style.animation = 'slideIn 0.35s ease';
-  tripEl.innerHTML = `
-    <div class="trip-date">
-      <div class="month">май</div>
-      <div class="day-num">11</div>
-      <div class="weekday">пн</div>
-    </div>
-    <div class="trip-content">
-      <div class="trip-tour">Hugo Villar, USA</div>
-      <div class="trip-meta">Ташкент · 4 сегмента</div>
-      <div class="trip-times">
-        <span class="trip-time-pill">09:00 → 19:20</span>
-      </div>
-    </div>
-    <div class="trip-tail">
-      <span class="trip-status confirmed">Подтверждено</span>
-    </div>
-  `;
-  upcomingSection.parentNode.insertBefore(tripEl, upcomingSection.nextSibling.nextSibling);
-  toast('Заявка принята · 11 мая забронирован в календаре', 'success');
-
-  // Clear badge
-  document.getElementById('home-badge').style.display = 'none';
-}
-
-function removeIncomingRequest(reason) {
-  clearInterval(requestTimerInterval);
-  const req = document.getElementById('incoming-request');
-  req.style.transition = 'all 0.4s ease';
-  req.style.transform = 'scale(0.95)';
-  req.style.opacity = '0';
-  setTimeout(() => req.remove(), 400);
-  if (reason === 'timeout') toast('Время истекло — заявка передана другому', 'error');
-}
-
-// ════════════ CALENDAR STATE ════════════
-let calendarBooked = [13, 17]; // May 11 will be added after accepting Hugo Villar request
-const calendarBusy = [5, 24, 25];
-const todayDate = 10;
-
-function renderCalendar() {
-  const grid = document.getElementById('calendar-grid');
-  grid.innerHTML = '';
-  ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => {
-    const h = document.createElement('div');
-    h.className = 'cal-day-head';
-    h.textContent = d;
-    grid.appendChild(h);
-  });
-  const firstDay = 4;
-  const daysInMonth = 31;
-  for (let i = 0; i < firstDay; i++) {
-    const c = document.createElement('div');
-    c.className = 'cal-cell other';
-    grid.appendChild(c);
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const c = document.createElement('div');
-    let cls = 'free';
-    if (calendarBooked.includes(d)) cls = 'booked';
-    else if (calendarBusy.includes(d)) cls = 'busy';
-    c.className = 'cal-cell ' + cls;
-    if (d === todayDate) c.classList.add('today');
-    c.textContent = d;
-    c.onclick = () => {
-      if (calendarBooked.includes(d)) toast(`День ${d} мая · забронирован`);
-      else if (calendarBusy.includes(d)) toast(`День ${d} мая · занят`);
-      else toast(`День ${d} мая · свободен`);
-    };
-    grid.appendChild(c);
-  }
-
-  // Update counters in stats row
-  const statsTiles = document.querySelectorAll('#view-calendar .stat-tile .v');
-  if (statsTiles.length >= 3) {
-    const free = daysInMonth - calendarBooked.length - calendarBusy.length;
-    statsTiles[0].textContent = calendarBooked.length;
-    statsTiles[1].textContent = free;
-    statsTiles[2].textContent = calendarBusy.length;
-  }
-}
-
-renderCalendar();
-
-// ════════════ TOAST ════════════
 function toast(msg, type) {
   const t = document.getElementById('toast');
+  if (!t) { alert(msg); return; }
   document.getElementById('toast-msg').textContent = msg;
   t.className = 'toast' + (type ? ' ' + type : '');
   const icon = t.querySelector('.toast-icon');
-  icon.textContent = type === 'error' ? '!' : type === 'success' ? '✓' : 'i';
+  if (icon) icon.textContent = type === 'error' ? '!' : type === 'success' ? '✓' : 'i';
   t.classList.add('show');
   clearTimeout(window._toastT);
   window._toastT = setTimeout(() => t.classList.remove('show'), 5000);
 }
 
-// Tiny CSS keyframe injection for trip slide-in
-const style = document.createElement('style');
-style.textContent = '@keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }';
-document.head.appendChild(style);
+// ═══════════════════════════════════════════════════════════
+// LEGACY: request card interactions (incoming-request demo)
+// (Оставляем для совместимости, но в реальности заявки — из БД)
+// ═══════════════════════════════════════════════════════════
+
+function showDeclineSheet() {
+  document.getElementById('decline-backdrop')?.classList.add('on');
+  document.getElementById('decline-sheet')?.classList.add('on');
+}
+function closeDeclineSheet() {
+  document.getElementById('decline-backdrop')?.classList.remove('on');
+  document.getElementById('decline-sheet')?.classList.remove('on');
+}
+function selectReason(el) {
+  document.querySelectorAll('.reason-item').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  const btn = document.getElementById('confirm-decline-btn');
+  if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+}
+function confirmDecline() {
+  closeDeclineSheet();
+  const req = document.getElementById('incoming-request');
+  if (req) { req.style.opacity = '0'; setTimeout(() => req.remove(), 400); }
+  toast('Отказ отправлен', 'success');
+}
+function showAcceptSheet() {
+  document.getElementById('accept-backdrop')?.classList.add('on');
+  document.getElementById('accept-sheet')?.classList.add('on');
+}
+function closeAcceptSheet() {
+  document.getElementById('accept-backdrop')?.classList.remove('on');
+  document.getElementById('accept-sheet')?.classList.remove('on');
+}
+function confirmAccept() {
+  closeAcceptSheet();
+  const req = document.getElementById('incoming-request');
+  if (req) { req.style.opacity = '0'; setTimeout(() => req.remove(), 400); }
+  toast('Заявка принята', 'success');
+}
+
 </script>
 
 </body>
