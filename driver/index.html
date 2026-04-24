@@ -1359,8 +1359,8 @@ button { font-family: inherit; border: none; cursor: pointer; }
 <!-- Telegram Mini App SDK — даёт Telegram.WebApp -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<!-- Supabase JS SDK -->
-<script src="https://unpkg.com/@supabase/supabase-js@2.39.0"></script>
+<!-- Supabase JS SDK (jsdelivr — более надёжный CDN чем unpkg) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
 
 </head>
 <body>
@@ -1817,8 +1817,8 @@ if (TG) {
   try { TG.setBackgroundColor('#FAFAF7'); } catch(e) {}
 }
 
-// --- Supabase client ---
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// --- Supabase client (инициализируется в boot() после проверки SDK) ---
+let supabase = null;
 
 // --- Global state ---
 const state = {
@@ -1853,6 +1853,13 @@ const REASON_META = {
 
 (async function boot() {
   try {
+    // 0. Проверяем что все SDK загрузились
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+      showSplashError('Не удалось загрузить Supabase SDK. Проверьте подключение к интернету и попробуйте позже.');
+      return;
+    }
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     // 1. Check Telegram Mini App context
     if (!TG || !TG.initData) {
       // Открыли не через Telegram — работаем в "demo" режиме
