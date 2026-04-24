@@ -1827,7 +1827,7 @@ if (TG) {
 }
 
 // --- Supabase client (инициализируется в boot() после проверки SDK) ---
-let supabase = null;
+let sb = null;
 
 // --- Global state ---
 const state = {
@@ -1867,7 +1867,7 @@ const REASON_META = {
       showSplashError('Не удалось загрузить Supabase SDK. Проверьте подключение к интернету и попробуйте позже.');
       return;
     }
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // 1. Check Telegram Mini App context
     if (!TG || !TG.initData) {
@@ -1904,7 +1904,7 @@ const REASON_META = {
 
     // 3. Обмениваем token_hash на Supabase session
     //    В новой версии supabase-js при использовании token_hash email передавать НЕ НУЖНО
-    const { data: sessionData, error: sessionErr } = await supabase.auth.verifyOtp({
+    const { data: sessionData, error: sessionErr } = await sb.auth.verifyOtp({
       token_hash: authData.token_hash,
       type: 'magiclink',
     });
@@ -2304,8 +2304,8 @@ async function saveBlockDay() {
   };
 
   const { error } = existing
-    ? await supabase.from('calendar_slots').update(payload).eq('id', existing.id)
-    : await supabase.from('calendar_slots').insert(payload);
+    ? await sb.from('calendar_slots').update(payload).eq('id', existing.id)
+    : await sb.from('calendar_slots').insert(payload);
 
   if (error) {
     console.error(error);
@@ -2324,7 +2324,7 @@ async function unblockDay() {
   const slot = state.calendar.slots.get(dateStr);
   if (!slot) { closeCalModal(); return; }
 
-  const { error } = await supabase.from('calendar_slots').delete().eq('id', slot.id);
+  const { error } = await sb.from('calendar_slots').delete().eq('id', slot.id);
   if (error) {
     toast('Ошибка разблокировки: ' + error.message, 'error');
     return;
@@ -2340,7 +2340,7 @@ async function requestCancellation(slotId, assignmentId) {
   if (!confirm('Отправить запрос на снятие брони? DMC должна подтвердить перенаправление заявки.')) return;
   const reasonText = prompt('Укажите причину (кратко):') || '';
 
-  const { error } = await supabase.from('cancellation_requests').insert({
+  const { error } = await sb.from('cancellation_requests').insert({
     slot_id: slotId,
     driver_id: state.driver.id,
     assignment_id: assignmentId,
