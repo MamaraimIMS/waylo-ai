@@ -34,6 +34,7 @@ jobs:
           cp -r dashboard _site/
           cp -r driver _site/
           cp -r docs _site/
+          cp -r admin _site/
           echo "Deployed at $(date)" > _site/version.txt
 
       - name: Upload artifact
