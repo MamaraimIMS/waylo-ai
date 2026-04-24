@@ -955,10 +955,6 @@ tbody tr:hover { background: #FAFAF7; }
             <input type="text" name="full_name" class="form-input" required placeholder="Абдуллаев Бахтияр Гаффарович">
           </div>
           <div class="form-field">
-            <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-input" placeholder="driver@example.com">
-          </div>
-          <div class="form-field">
             <label class="form-label">Телефон</label>
             <input type="tel" name="phone" class="form-input" placeholder="+998 90 123 45 67">
           </div>
@@ -1432,7 +1428,6 @@ async function editDriver(id) {
   document.getElementById('driver-modal-title').textContent = 'Редактировать водителя';
   const f = document.forms['form-driver'];
   f.full_name.value = d.full_name;
-  f.email.value = d.email || '';
   f.phone.value = d.phone || '';
   f.driver_license_number.value = d.driver_license_number || '';
   f.home_city.value = d.home_city;
@@ -1484,10 +1479,9 @@ async function saveDriver() {
 }
 
 async function createDriverAndVehicle(fd) {
-  // 1. Создаём пользователя-водителя
-  const email = fd.get('email') || `driver_${Date.now()}@waylo.local`;
+  // 1. Создаём пользователя-водителя (без email — водитель не логинится)
   const { data: userRow, error: ue } = await supabase.from('users').insert({
-    email,
+    email: null,
     full_name: fd.get('full_name'),
     phone: fd.get('phone') || null,
     role: 'driver',
@@ -1548,8 +1542,7 @@ async function updateDriverAndVehicle(driverId, fd) {
   // Update user
   await supabase.from('users').update({
     full_name: fd.get('full_name'),
-    phone: fd.get('phone') || null,
-    email: fd.get('email') || undefined
+    phone: fd.get('phone') || null
   }).eq('id', d.user_id || (await supabase.from('drivers').select('user_id').eq('id', driverId).single()).data.user_id);
 
   // Update primary vehicle
