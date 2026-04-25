@@ -1958,7 +1958,7 @@ function hideSplash() {
 
 async function loadDriverData(driverId) {
   // Водитель
-  const { data: driver, error: de } = await supabase
+  const { data: driver, error: de } = await sb
     .from('drivers')
     .select('*')
     .eq('id', driverId)
@@ -1968,7 +1968,7 @@ async function loadDriverData(driverId) {
 
   // Связанный user
   if (driver.user_id) {
-    const { data: user } = await supabase
+    const { data: user } = await sb
       .from('users')
       .select('*')
       .eq('id', driver.user_id)
@@ -1977,7 +1977,7 @@ async function loadDriverData(driverId) {
   }
 
   // Машина (первая активная)
-  const { data: vehicles } = await supabase
+  const { data: vehicles } = await sb
     .from('vehicles')
     .select('*')
     .eq('driver_id', driverId)
@@ -1988,7 +1988,7 @@ async function loadDriverData(driverId) {
 
   // DMC — своя
   if (state.user?.dmc_id) {
-    const { data: dmc } = await supabase
+    const { data: dmc } = await sb
       .from('dmc_companies')
       .select('*')
       .eq('id', state.user.dmc_id)
@@ -2002,7 +2002,7 @@ async function loadCalendar() {
   const firstDay = new Date(year, month, 1).toISOString().slice(0, 10);
   const lastDay = new Date(year, month + 1, 0).toISOString().slice(0, 10);
 
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('calendar_slots_safe')
     .select('*')
     .eq('driver_id', state.driver.id)
