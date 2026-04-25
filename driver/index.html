@@ -1999,8 +1999,11 @@ async function loadDriverData(driverId) {
 
 async function loadCalendar() {
   const { year, month } = state.calendar;
-  const firstDay = new Date(year, month, 1).toISOString().slice(0, 10);
-  const lastDay = new Date(year, month + 1, 0).toISOString().slice(0, 10);
+  // ВАЖНО: формируем дату локально, без toISOString (он даёт UTC, что в +UTC поясах сдвигает на день назад)
+  const mm = String(month + 1).padStart(2, '0');
+  const lastDayNum = new Date(year, month + 1, 0).getDate();
+  const firstDay = `${year}-${mm}-01`;
+  const lastDay = `${year}-${mm}-${String(lastDayNum).padStart(2, '0')}`;
 
   const { data, error } = await sb
     .from('calendar_slots_safe')
@@ -2030,7 +2033,9 @@ function renderGreeting() {
   // Обновляем имя в топбаре
   const nameEl = document.querySelector('.greeting .name');
   if (nameEl && state.driver) {
-    const firstName = (state.driver.full_name || '').split(' ')[0] || 'Водитель';
+    // ВАЖНО: full_name живёт в state.user (таблица users), а не в state.driver (drivers)
+    const fullName = state.user?.full_name || '';
+    const firstName = fullName.split(' ')[0] || 'Водитель';
     nameEl.innerHTML = firstName + ' <span class="ai-dot">·</span> ' + (state.dmc?.name || 'WayloAI');
   }
 
@@ -2051,7 +2056,7 @@ function renderProfile() {
       // Field mapping зависит от разметки старого шаблона. Для MVP просто ставим ФИО в первый .pf-name если есть
     }
     const nameHolders = document.querySelectorAll('#view-profile .pf-name, #view-profile .driver-name');
-    nameHolders.forEach(el => { if (state.driver) el.textContent = state.driver.full_name; });
+    nameHolders.forEach(el => { if (state.user) el.textContent = state.user.full_name || ''; });
   } catch (e) { console.warn('renderProfile minor err', e); }
 }
 
@@ -2085,7 +2090,7 @@ function renderCalendar() {
   }
 
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   let bookedCount = 0, blockedCount = 0, freeCount = 0;
 
@@ -2293,9 +2298,8 @@ async function saveBlockDay() {
   const note = document.getElementById('cal-note')?.value?.trim() || null;
   const dateStr = state.selectedDate;
 
-  // Upsert в calendar_slots
-  const existing = state.calendar.slots.get(dateStr);
-  let payload = {
+  // Upsert в calendar_slots (атомарно: insert или update по UNIQUE(driver_id, slot_date))
+  const payload = {
     driver_id: state.driver.id,
     slot_date: dateStr,
     status: 'blocked',
@@ -2303,9 +2307,9 @@ async function saveBlockDay() {
     reason_note: note,
   };
 
-  const { error } = existing
-    ? await sb.from('calendar_slots').update(payload).eq('id', existing.id)
-    : await sb.from('calendar_slots').insert(payload);
+  const { error } = await sb
+    .from('calendar_slots')
+    .upsert(payload, { onConflict: 'driver_id,slot_date' });
 
   if (error) {
     console.error(error);
