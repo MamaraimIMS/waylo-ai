@@ -1420,112 +1420,15 @@ button { font-family: inherit; border: none; cursor: pointer; }
     <!-- ═══════════ VIEW: HOME ═══════════ -->
     <div class="view active" id="view-home">
 
-      <!-- Incoming request -->
-      <div id="incoming-request" class="incoming">
-        <div class="incoming-head">
-          <div class="incoming-label">
-            <span class="pulse-dot"></span>
-            Новая заявка · Advantour
-          </div>
-          <div class="incoming-timer">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="request-timer">14:47</span>
-          </div>
-        </div>
+      <!-- Incoming requests (рендерится в JS из state.requests) -->
+      <div id="requests-list"></div>
 
-        <div class="incoming-title">Hugo Villar, USA</div>
-        <div class="incoming-sub">2 туриста · Mercedes Sprinter · 4 сегмента</div>
-
-        <div class="incoming-summary">
-          <div class="i-sum-cell">
-            <div class="i-sum-label">Дата</div>
-            <div class="i-sum-value mono">11.05.2026, Пн</div>
-          </div>
-          <div class="i-sum-cell">
-            <div class="i-sum-label">Город</div>
-            <div class="i-sum-value">Ташкент</div>
-          </div>
-          <div class="i-sum-cell">
-            <div class="i-sum-label">Начало</div>
-            <div class="i-sum-value mono">09:00</div>
-          </div>
-          <div class="i-sum-cell">
-            <div class="i-sum-label">Окончание</div>
-            <div class="i-sum-value mono">19:20</div>
-          </div>
-        </div>
-
-        <div class="incoming-route">
-          <div class="irt-title">Маршрут дня</div>
-          <div class="irt-list">
-            <div class="irt-seg">
-              <span class="irt-time">09:00</span>
-              <span class="irt-from-to">Hotel <span class="arrow">→</span> Restaurant</span>
-            </div>
-            <div class="irt-seg">
-              <span class="irt-time">14:00</span>
-              <span class="irt-from-to">Restaurant <span class="arrow">→</span> Hotel</span>
-            </div>
-            <div class="irt-seg">
-              <span class="irt-time">19:00</span>
-              <span class="irt-from-to">Hotel <span class="arrow">→</span> Airport</span>
-            </div>
-            <div class="irt-more">+ 1 сегмент трансфера</div>
-          </div>
-        </div>
-
-        <div class="incoming-actions">
-          <button class="btn-big decline" onclick="showDeclineSheet()">
-            Отказаться
-          </button>
-          <button class="btn-big primary" onclick="showAcceptSheet()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Принять
-          </button>
-        </div>
-      </div>
-
-      <!-- Upcoming trips -->
+      <!-- Upcoming trips (рендерится в JS из state.upcoming) -->
       <div class="section-title">
         Предстоящие поездки
-        <span class="more">Все →</span>
       </div>
 
-      <div class="trip">
-        <div class="trip-date">
-          <div class="month">май</div>
-          <div class="day-num">13</div>
-          <div class="weekday">ср</div>
-        </div>
-        <div class="trip-content">
-          <div class="trip-tour">Sarah Chen, UK</div>
-          <div class="trip-meta">Ташкент · Hyundai Staria</div>
-          <div class="trip-times">
-            <span class="trip-time-pill">08:30 → 11:00</span>
-          </div>
-        </div>
-        <div class="trip-tail">
-          <span class="trip-status confirmed">Подтверждено</span>
-        </div>
-      </div>
-
-      <div class="trip">
-        <div class="trip-date">
-          <div class="month">май</div>
-          <div class="day-num">17</div>
-          <div class="weekday">вс</div>
-        </div>
-        <div class="trip-content">
-          <div class="trip-tour">Родригес М., Испания</div>
-          <div class="trip-meta">Ташкент · Sprinter · 3 сегмента</div>
-          <div class="trip-times">
-            <span class="trip-time-pill">09:00 → 20:00</span>
-          </div>
-        </div>
-        <div class="trip-tail">
-          <span class="trip-status confirmed">Подтверждено</span>
-        </div>
-      </div>
+      <div id="upcoming-list"></div>
 
     </div>
 
@@ -1831,7 +1734,7 @@ let sb = null;
 
 // --- Global state ---
 const state = {
-  driver: null,        // { id, full_name, phone, ... }
+  driver: null,        // { id, phone, ... } (NB: full_name живёт в users, не drivers)
   user: null,          // public.users row
   dmc: null,           // dmc_companies row (my DMC)
   vehicle: null,       // vehicles row
@@ -1842,6 +1745,11 @@ const state = {
   },
   selectedDate: null,
   selectedReason: null,
+  // --- Requests (Главный экран) ---
+  requests: [],            // pending/sent driver_assignments + transfer_requests + segments
+  upcoming: [],            // confirmed driver_assignments в будущем
+  activeAssignmentId: null,
+  declineReason: null,
 };
 
 const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -1923,10 +1831,15 @@ const REASON_META = {
     // 5. Загружаем календарь на текущий месяц
     await loadCalendar();
 
+    // 5b. Загружаем заявки и предстоящие поездки
+    await Promise.all([loadRequests(), loadUpcoming()]);
+
     // 6. Приветствие + UI
     renderProfile();
     renderGreeting();
     renderCalendar();
+    renderRequests();
+    renderUpcoming();
 
     // 7. Скрыть splash
     hideSplash();
@@ -2442,43 +2355,374 @@ function toast(msg, type) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// LEGACY: request card interactions (incoming-request demo)
-// (Оставляем для совместимости, но в реальности заявки — из БД)
+// ═══════════════════════════════════════════════════════════
+// REQUESTS: data loading & rendering
 // ═══════════════════════════════════════════════════════════
 
-function showDeclineSheet() {
-  document.getElementById('decline-backdrop')?.classList.add('on');
-  document.getElementById('decline-sheet')?.classList.add('on');
+async function loadRequests() {
+  if (!state.driver) { state.requests = []; return; }
+
+  const { data: assignments, error } = await sb
+    .from('driver_assignments')
+    .select(`
+      id, request_id, vehicle_id, segment_ids, dispatch_city,
+      assignment_date, status, expires_at, created_at,
+      transfer_requests!inner (
+        id, dmc_id, tour_name, pax_count, vehicle_category,
+        total_segments, total_days, tour_starts_on, tour_ends_on
+      )
+    `)
+    .eq('driver_id', state.driver.id)
+    .in('status', ['pending', 'sent'])
+    .order('assignment_date', { ascending: true });
+
+  if (error) {
+    console.error('loadRequests error:', error);
+    state.requests = [];
+    return;
+  }
+  state.requests = assignments || [];
+
+  // Подгружаем сегменты пакетом
+  const allSegmentIds = state.requests.flatMap(a => a.segment_ids || []);
+  let segMap = new Map();
+  if (allSegmentIds.length) {
+    const { data: segs } = await sb
+      .from('transfer_segments')
+      .select('id, day_number, transfer_date, sequence, time_from, time_to, location_from, location_to')
+      .in('id', allSegmentIds);
+    segMap = new Map((segs || []).map(s => [s.id, s]));
+  }
+  state.requests.forEach(a => {
+    a.segments = (a.segment_ids || []).map(id => segMap.get(id)).filter(Boolean);
+    a.segments.sort((x, y) => {
+      if (x.transfer_date !== y.transfer_date) return x.transfer_date < y.transfer_date ? -1 : 1;
+      return x.sequence - y.sequence;
+    });
+  });
+
+  // Подгружаем имена DMC
+  const dmcIds = [...new Set(state.requests.map(a => a.transfer_requests?.dmc_id).filter(Boolean))];
+  if (dmcIds.length) {
+    const { data: dmcs } = await sb.from('dmc_companies').select('id, name').in('id', dmcIds);
+    const dmcMap = new Map((dmcs || []).map(d => [d.id, d.name]));
+    state.requests.forEach(a => {
+      a.dmc_name = dmcMap.get(a.transfer_requests?.dmc_id) || '—';
+    });
+  }
 }
-function closeDeclineSheet() {
-  document.getElementById('decline-backdrop')?.classList.remove('on');
-  document.getElementById('decline-sheet')?.classList.remove('on');
+
+async function loadUpcoming() {
+  if (!state.driver) { state.upcoming = []; return; }
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  const { data, error } = await sb
+    .from('driver_assignments')
+    .select(`
+      id, assignment_date, status, dispatch_city, segment_ids,
+      transfer_requests!inner (id, tour_name, pax_count, vehicle_category, total_segments)
+    `)
+    .eq('driver_id', state.driver.id)
+    .eq('status', 'confirmed')
+    .gte('assignment_date', todayStr)
+    .order('assignment_date', { ascending: true })
+    .limit(10);
+
+  if (error) {
+    console.error('loadUpcoming error:', error);
+    state.upcoming = [];
+    return;
+  }
+  state.upcoming = data || [];
+
+  // Подгружаем минимум по сегментам — для time pill (start/end)
+  const allSegmentIds = state.upcoming.flatMap(a => a.segment_ids || []);
+  if (allSegmentIds.length) {
+    const { data: segs } = await sb
+      .from('transfer_segments')
+      .select('id, time_from, time_to, sequence')
+      .in('id', allSegmentIds);
+    const segMap = new Map((segs || []).map(s => [s.id, s]));
+    state.upcoming.forEach(a => {
+      const list = (a.segment_ids || []).map(id => segMap.get(id)).filter(Boolean);
+      list.sort((x, y) => x.sequence - y.sequence);
+      a.timeStart = list[0]?.time_from?.slice(0, 5) || '';
+      a.timeEnd = list[list.length - 1]?.time_to?.slice(0, 5) || '';
+    });
+  }
 }
-function selectReason(el) {
-  document.querySelectorAll('.reason-item').forEach(r => r.classList.remove('selected'));
-  el.classList.add('selected');
-  const btn = document.getElementById('confirm-decline-btn');
-  if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+
+function renderRequests() {
+  const list = document.getElementById('requests-list');
+  if (!list) return;
+
+  if (!state.requests || state.requests.length === 0) {
+    list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--muted);font-size:14px">Новых заявок нет</div>';
+    return;
+  }
+
+  list.innerHTML = state.requests.map(a => {
+    const tr = a.transfer_requests || {};
+    const date = formatDateShort(a.assignment_date);
+    const cityLabel = capitalizeFirst(a.dispatch_city);
+    const segCount = tr.total_segments || a.segments?.length || 0;
+    const sub = `${tr.pax_count || 0} ${pluralPax(tr.pax_count || 0)} · ${formatVehicleCategory(tr.vehicle_category)} · ${segCount} ${pluralSeg(segCount)}`;
+
+    const segs = a.segments || [];
+    const startTime = segs[0]?.time_from?.slice(0, 5) || '—';
+    const endTime = segs[segs.length - 1]?.time_to?.slice(0, 5) || '—';
+
+    const routeRows = segs.slice(0, 3).map(s => `
+      <div class="irt-seg">
+        <span class="irt-time">${escapeHtml(s.time_from?.slice(0, 5) || '')}</span>
+        <span class="irt-from-to">${escapeHtml(s.location_from)} <span class="arrow">→</span> ${escapeHtml(s.location_to)}</span>
+      </div>`).join('');
+    const more = segs.length > 3 ? `<div class="irt-more">+ ${segs.length - 3} ${pluralSeg(segs.length - 3)} трансфера</div>` : '';
+
+    return `
+      <div class="incoming" data-assignment-id="${a.id}">
+        <div class="incoming-head">
+          <div class="incoming-label">
+            <span class="pulse-dot"></span>
+            Новая заявка · ${escapeHtml(a.dmc_name || 'DMC')}
+          </div>
+        </div>
+        <div class="incoming-title">${escapeHtml(tr.tour_name || 'Тур')}</div>
+        <div class="incoming-sub">${escapeHtml(sub)}</div>
+        <div class="incoming-summary">
+          <div class="i-sum-cell"><div class="i-sum-label">Дата</div><div class="i-sum-value mono">${date}</div></div>
+          <div class="i-sum-cell"><div class="i-sum-label">Город</div><div class="i-sum-value">${escapeHtml(cityLabel)}</div></div>
+          <div class="i-sum-cell"><div class="i-sum-label">Начало</div><div class="i-sum-value mono">${startTime}</div></div>
+          <div class="i-sum-cell"><div class="i-sum-label">Окончание</div><div class="i-sum-value mono">${endTime}</div></div>
+        </div>
+        <div class="incoming-route">
+          <div class="irt-title">Маршрут дня</div>
+          <div class="irt-list">${routeRows}${more}</div>
+        </div>
+        <div class="incoming-actions">
+          <button class="btn-big decline" onclick="showDeclineSheet('${a.id}')">Отказаться</button>
+          <button class="btn-big primary" onclick="showAcceptSheet('${a.id}')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Принять
+          </button>
+        </div>
+      </div>`;
+  }).join('');
 }
-function confirmDecline() {
-  closeDeclineSheet();
-  const req = document.getElementById('incoming-request');
-  if (req) { req.style.opacity = '0'; setTimeout(() => req.remove(), 400); }
-  toast('Отказ отправлен', 'success');
+
+function renderUpcoming() {
+  const list = document.getElementById('upcoming-list');
+  if (!list) return;
+
+  if (!state.upcoming || state.upcoming.length === 0) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Нет предстоящих поездок</div>';
+    return;
+  }
+
+  list.innerHTML = state.upcoming.map(a => {
+    const tr = a.transfer_requests || {};
+    const d = new Date(a.assignment_date + 'T00:00:00');
+    const month = MONTH_NAMES_SHORT[d.getMonth()];
+    const dayNum = d.getDate();
+    const wdIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    const weekday = WEEKDAYS_SHORT[wdIdx];
+    const meta = [capitalizeFirst(a.dispatch_city || ''), formatVehicleCategory(tr.vehicle_category)].filter(Boolean).join(' · ');
+    const timeStart = a.timeStart || '—';
+    const timeEnd = a.timeEnd || '—';
+
+    return `
+      <div class="trip" data-assignment-id="${a.id}">
+        <div class="trip-date">
+          <div class="month">${month}</div>
+          <div class="day-num">${dayNum}</div>
+          <div class="weekday">${weekday}</div>
+        </div>
+        <div class="trip-content">
+          <div class="trip-tour">${escapeHtml(tr.tour_name || 'Тур')}</div>
+          <div class="trip-meta">${escapeHtml(meta)}</div>
+          <div class="trip-times">
+            <span class="trip-time-pill">${timeStart} → ${timeEnd}</span>
+          </div>
+        </div>
+        <div class="trip-tail">
+          <span class="trip-status confirmed">Подтверждено</span>
+        </div>
+      </div>`;
+  }).join('');
 }
-function showAcceptSheet() {
+
+// ═══════════════════════════════════════════════════════════
+// REQUESTS: helpers
+// ═══════════════════════════════════════════════════════════
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function capitalizeFirst(s) {
+  if (!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+function formatDateShort(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const wdIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
+  const wd = WEEKDAYS_SHORT[wdIdx];
+  return `${dd}.${mm}.${d.getFullYear()}, ${wd[0].toUpperCase()}${wd.slice(1)}`;
+}
+function formatVehicleCategory(cat) {
+  if (!cat) return 'Авто';
+  const map = { sedan: 'Sedan', minivan: 'Minivan', minibus: 'Minibus', bus: 'Bus', suv: 'SUV' };
+  return map[cat] || capitalizeFirst(cat);
+}
+function pluralPax(n) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return 'турист';
+  if ([2, 3, 4].includes(m10) && ![12, 13, 14].includes(m100)) return 'туриста';
+  return 'туристов';
+}
+function pluralSeg(n) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return 'сегмент';
+  if ([2, 3, 4].includes(m10) && ![12, 13, 14].includes(m100)) return 'сегмента';
+  return 'сегментов';
+}
+
+// ═══════════════════════════════════════════════════════════
+// REQUESTS: accept / decline
+// ═══════════════════════════════════════════════════════════
+
+function showAcceptSheet(assignmentId) {
+  state.activeAssignmentId = assignmentId;
+
+  // Заполняем confirm sheet данными из выбранного ассайнмента
+  const a = state.requests.find(x => x.id === assignmentId);
+  if (a) {
+    const tr = a.transfer_requests || {};
+    const segs = a.segments || [];
+    const startTime = segs[0]?.time_from?.slice(0, 5) || '—';
+    const endTime = segs[segs.length - 1]?.time_to?.slice(0, 5) || '—';
+    const dateOnly = formatDateShort(a.assignment_date).split(',')[0];
+
+    const csumRows = document.querySelectorAll('#accept-sheet .csum-row .csum-val');
+    if (csumRows.length >= 5) {
+      csumRows[0].textContent = tr.tour_name || '';
+      csumRows[1].textContent = dateOnly;
+      csumRows[2].textContent = capitalizeFirst(a.dispatch_city || '');
+      csumRows[3].textContent = String(tr.total_segments || segs.length || 0);
+      csumRows[4].textContent = `${startTime} → ${endTime}`;
+    }
+  }
+
   document.getElementById('accept-backdrop')?.classList.add('on');
   document.getElementById('accept-sheet')?.classList.add('on');
 }
+
 function closeAcceptSheet() {
   document.getElementById('accept-backdrop')?.classList.remove('on');
   document.getElementById('accept-sheet')?.classList.remove('on');
 }
-function confirmAccept() {
+
+async function confirmAccept() {
   closeAcceptSheet();
-  const req = document.getElementById('incoming-request');
-  if (req) { req.style.opacity = '0'; setTimeout(() => req.remove(), 400); }
-  toast('Заявка принята', 'success');
+  const assignmentId = state.activeAssignmentId;
+  if (!assignmentId) return;
+
+  const a = state.requests.find(x => x.id === assignmentId);
+  if (!a) { toast('Заявка не найдена', 'error'); return; }
+
+  try {
+    // 1. UPDATE статус ассайнмента → confirmed
+    const { error: updErr } = await sb
+      .from('driver_assignments')
+      .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
+      .eq('id', assignmentId);
+    if (updErr) throw updErr;
+
+    // 2. Собрать уникальные даты сегментов (для multi-day туров)
+    let dates = [...new Set((a.segments || []).map(s => s.transfer_date).filter(Boolean))];
+    if (dates.length === 0 && a.assignment_date) dates = [a.assignment_date];
+
+    // 3. RPC: создать booked-слоты в календаре
+    if (dates.length > 0) {
+      const requestingDmcId = a.transfer_requests?.dmc_id || null;
+      const { error: rpcErr } = await sb.rpc('system_book_driver_slots', {
+        p_driver_id: state.driver.id,
+        p_assignment_id: assignmentId,
+        p_requesting_dmc_id: requestingDmcId,
+        p_dates: dates,
+      });
+      if (rpcErr) console.warn('book_slots RPC warning:', rpcErr); // не фатально, статус ассайнмента уже обновлён
+    }
+
+    toast('Заявка принята', 'success');
+
+    // 4. Перезагрузить данные
+    await Promise.all([loadRequests(), loadUpcoming(), loadCalendar()]);
+    renderRequests();
+    renderUpcoming();
+    renderCalendar();
+  } catch (e) {
+    console.error('confirmAccept error:', e);
+    toast('Ошибка: ' + (e.message || e), 'error');
+  } finally {
+    state.activeAssignmentId = null;
+  }
+}
+
+function showDeclineSheet(assignmentId) {
+  state.activeAssignmentId = assignmentId;
+  state.declineReason = null;
+  document.querySelectorAll('.reason-item').forEach(r => r.classList.remove('selected'));
+  const btn = document.getElementById('confirm-decline-btn');
+  if (btn) { btn.style.opacity = '.5'; btn.style.pointerEvents = 'none'; }
+  document.getElementById('decline-backdrop')?.classList.add('on');
+  document.getElementById('decline-sheet')?.classList.add('on');
+}
+
+function closeDeclineSheet() {
+  document.getElementById('decline-backdrop')?.classList.remove('on');
+  document.getElementById('decline-sheet')?.classList.remove('on');
+}
+
+function selectReason(el) {
+  document.querySelectorAll('.reason-item').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+  state.declineReason = el.dataset.reason || el.textContent.trim();
+  const btn = document.getElementById('confirm-decline-btn');
+  if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+}
+
+async function confirmDecline() {
+  closeDeclineSheet();
+  const assignmentId = state.activeAssignmentId;
+  if (!assignmentId) return;
+
+  try {
+    const { error } = await sb
+      .from('driver_assignments')
+      .update({
+        status: 'declined',
+        declined_at: new Date().toISOString(),
+        decline_reason: state.declineReason || 'no_reason',
+      })
+      .eq('id', assignmentId);
+    if (error) throw error;
+
+    toast('Отказ отправлен', 'success');
+    await loadRequests();
+    renderRequests();
+  } catch (e) {
+    console.error('confirmDecline error:', e);
+    toast('Ошибка: ' + (e.message || e), 'error');
+  } finally {
+    state.activeAssignmentId = null;
+    state.declineReason = null;
+  }
 }
 
 </script>
