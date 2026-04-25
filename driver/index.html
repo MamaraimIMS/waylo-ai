@@ -1841,6 +1841,9 @@ const REASON_META = {
     renderRequests();
     renderUpcoming();
 
+    // ── DEBUG PANEL (временно) ──
+    renderDebugPanel();
+
     // 7. Скрыть splash
     hideSplash();
   } catch (e) {
@@ -2360,7 +2363,13 @@ function toast(msg, type) {
 // ═══════════════════════════════════════════════════════════
 
 async function loadRequests() {
-  if (!state.driver) { state.requests = []; return; }
+  if (!state.driver) {
+    state.requests = [];
+    window.__debugLast = { step: 'no_driver', driverId: null };
+    return;
+  }
+
+  window.__debugLast = { step: 'querying', driverId: state.driver.id };
 
   const { data: assignments, error } = await sb
     .from('driver_assignments')
@@ -2375,6 +2384,13 @@ async function loadRequests() {
     .eq('driver_id', state.driver.id)
     .in('status', ['pending', 'sent'])
     .order('assignment_date', { ascending: true });
+
+  window.__debugLast = {
+    step: 'after_query',
+    driverId: state.driver.id,
+    assignmentsCount: (assignments || []).length,
+    error: error ? (error.message || JSON.stringify(error)) : null,
+  };
 
   if (error) {
     console.error('loadRequests error:', error);
@@ -2696,6 +2712,44 @@ function selectReason(el) {
   const btn = document.getElementById('confirm-decline-btn');
   if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
 }
+
+function renderDebugPanel() {
+  let panel = document.getElementById('debug-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'debug-panel';
+    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;font:11px/1.4 monospace;padding:8px 10px;z-index:99999;max-height:35vh;overflow:auto;border-bottom:2px solid #0f0;white-space:pre-wrap;word-break:break-all';
+    document.body.appendChild(panel);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = 'position:fixed;top:4px;right:4px;background:#f00;color:#fff;border:0;width:24px;height:24px;border-radius:50%;z-index:100000;font-size:12px';
+    closeBtn.onclick = () => { panel.remove(); closeBtn.remove(); };
+    document.body.appendChild(closeBtn);
+  }
+
+  const dbg = window.__debugLast || {};
+  const lines = [
+    `auth.uid (через драйвер): ${state.driver?.user_id || 'NULL'}`,
+    `state.driver.id: ${state.driver?.id || 'NULL'}`,
+    `state.driver.phone: ${state.driver?.phone || 'NULL'}`,
+    `state.user.id: ${state.user?.id || 'NULL'}`,
+    `state.user.full_name: ${state.user?.full_name || 'NULL'}`,
+    `state.user.auth_user_id: ${state.user?.auth_user_id || 'NULL'}`,
+    `state.dmc.id: ${state.dmc?.id || 'NULL'}`,
+    `state.dmc.name: ${state.dmc?.name || 'NULL'}`,
+    `state.vehicle.id: ${state.vehicle?.id || 'NULL'}`,
+    '──────────────',
+    `loadRequests step: ${dbg.step || '?'}`,
+    `loadRequests count: ${dbg.assignmentsCount ?? '?'}`,
+    `loadRequests error: ${dbg.error || 'none'}`,
+    '──────────────',
+    `state.requests.length: ${state.requests?.length ?? '?'}`,
+    `state.upcoming.length: ${state.upcoming?.length ?? '?'}`,
+  ];
+  panel.textContent = lines.join('\n');
+}
+
 
 async function confirmDecline() {
   closeDeclineSheet();
