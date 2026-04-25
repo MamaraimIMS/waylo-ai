@@ -2046,7 +2046,7 @@ button { font-family: inherit; }
           <div class="panel-head">
             <div>
               <h3>Занятость топ-водителя</h3>
-              <div class="desc">Абдуллаев Б. · Ташкент · Mercedes Sprinter</div>
+              <div class="desc" id="top-driver-desc">— · — · —</div>
             </div>
             <span class="panel-badge">live</span>
           </div>
@@ -2208,7 +2208,7 @@ button { font-family: inherit; }
           <div class="ti">Демо-режим</div>
           <div class="td">Использовать встроенный пример вместо реального API</div>
         </div>
-        <div class="tog on" id="demo-toggle" onclick="toggleDemo()"></div>
+        <div class="tog" id="demo-toggle" onclick="toggleDemo()"></div>
       </div>
       <div class="tog-row">
         <div>
@@ -2316,7 +2316,7 @@ const config = {
   get n8nAuth() { return PLATFORM_CONFIG.n8nAuth; },
   get sqlEndpoint() { return PLATFORM_CONFIG.sqlEndpoint; },
   get sqlToken() { return PLATFORM_CONFIG.sqlToken; },
-  get demoMode() { return localStorage.getItem('waylo_demo') !== 'false'; },
+  get demoMode() { return localStorage.getItem('waylo_demo') === 'true'; },
   set demoMode(v) { localStorage.setItem('waylo_demo', v); }
 };
 
@@ -2335,6 +2335,10 @@ dz.addEventListener('drop', (e) => {
 fi.addEventListener('change', (e) => { const f = e.target.files[0]; if (f) handleUpload(f); });
 document.getElementById('try-sample').addEventListener('click', (e) => {
   e.preventDefault();
+  if (!config.demoMode) {
+    toast('Демо-режим выключен. Включите его в Настройках, чтобы попробовать пример.', 'error');
+    return;
+  }
   handleUpload({ name: 'Hugo_Villar_1_USA.pdf', size: 48234, isDemoSample: true });
 });
 
@@ -2420,6 +2424,7 @@ async function runReal(file) {
 }
 
 function renderResult(data) {
+  window._lastResult = data;
   document.getElementById('r-title').innerHTML =
     data.tour_name.replace(/,\s*([A-Z]+)$/, ', <span class="cc">$1</span>');
   document.getElementById('r-id').textContent =
@@ -2432,6 +2437,15 @@ function renderResult(data) {
   const dl = document.getElementById('driver-list');
   dl.innerHTML = '';
   data.recommended_drivers.forEach(d => dl.appendChild(renderDriver(d)));
+
+  // Update top-driver widget desc from first real driver
+  const topDesc = document.getElementById('top-driver-desc');
+  if (topDesc) {
+    const top = data.recommended_drivers && data.recommended_drivers[0];
+    topDesc.textContent = top
+      ? `${top.name} · ${top.city || '—'} · ${top.car || '—'}`
+      : '— · — · —';
+  }
 
   renderCalendar();
   renderJSON(data);
@@ -2578,25 +2592,62 @@ function sendToDrivers() {
   document.getElementById('step-4').style.display = 'block';
   setSnav(4);
 
-  // Build initial confirm cards from current DEMO assignments
+  // Build initial confirm cards from real n8n result if available, else from DEMO_DATA
+  const useDemo = config.demoMode || !window._lastResult;
+  const lastData = window._lastResult || DEMO_DATA;
+
+  // Source of truth for drivers to send to
+  let driversList;
+  if (useDemo) {
+    driversList = [
+      { id: 'AB', name: 'Абдуллаев Бахтиер', city: 'Ташкент', segments: 4, status: 'pending', sentAt: Date.now() },
+      { id: 'YB', name: 'Юлдашев Бобур', city: 'Хива', segments: 4, status: 'pending', sentAt: Date.now() },
+      { id: 'ZU', name: 'Зубаев Умид', city: 'Бухара', segments: 2, status: 'pending', sentAt: Date.now() },
+      { id: 'SK', name: 'Смирнов Константин', city: 'Самарканд', segments: 1, status: 'pending', sentAt: Date.now() }
+    ];
+  } else {
+    // Build from real recommended_drivers + count segments per dispatch_city
+    const segmentsByCity = {};
+    (lastData.days || []).forEach(d => {
+      (d.transfers || []).forEach(t => {
+        const c = (t.city || '').toLowerCase();
+        if (c) segmentsByCity[c] = (segmentsByCity[c] || 0) + 1;
+      });
+    });
+    const cityRu = { tashkent:'Ташкент', samarkand:'Самарканд', bukhara:'Бухара', khiva:'Хива', urganch:'Ургенч' };
+    driversList = (lastData.recommended_drivers || []).map((d, idx) => {
+      // Try to find which city this driver is dispatched to via assignments
+      let dispatchCity = '';
+      Object.values(lastData.assignments || {}).flat().forEach(a => {
+        if (a.driver === d.name && !dispatchCity) dispatchCity = a.city;
+      });
+      const initials = (d.name || '').split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase();
+      return {
+        id: 'D' + idx,
+        name: d.name,
+        city: cityRu[dispatchCity] || d.city || '—',
+        segments: segmentsByCity[dispatchCity] || 0,
+        status: 'pending',
+        sentAt: Date.now(),
+        _initials: initials
+      };
+    });
+  }
+
+  // Reset UI
   const confirmList = document.getElementById('confirm-list');
   confirmList.innerHTML = '';
   document.getElementById('confirm-count').textContent = '0';
-  document.getElementById('confirm-total').textContent = '4';
+  document.getElementById('confirm-total').textContent = String(driversList.length);
   document.getElementById('progress-fill').style.width = '0%';
   document.getElementById('success-banner').classList.remove('on');
   document.getElementById('step-4-status').style.display = 'none';
   document.getElementById('complete-btn').style.display = 'none';
 
   confirmationState = {
-    drivers: [
-      { id: 'AB', name: 'Абдуллаев Бахтиер', city: 'Ташкент', segments: 4, status: 'pending', sentAt: Date.now() },
-      { id: 'YB', name: 'Юлдашев Бобур', city: 'Хива', segments: 4, status: 'pending', sentAt: Date.now() },
-      { id: 'ZU', name: 'Зубаев Умид', city: 'Бухара', segments: 2, status: 'pending', sentAt: Date.now() },
-      { id: 'SK', name: 'Смирнов Константин', city: 'Самарканд', segments: 1, status: 'pending', sentAt: Date.now() }
-    ],
+    drivers: driversList,
     confirmed: 0,
-    total: 4,
+    total: driversList.length,
     slaStart: Date.now(),
     slaDuration: 15 * 60 * 1000 // 15 min
   };
@@ -2606,7 +2657,8 @@ function sendToDrivers() {
   // Activity feed
   const actList = document.getElementById('activity-list');
   actList.innerHTML = '';
-  addActivity('system', '<b>Запросы отправлены</b> 4 водителям в Ташкент, Хиву, Бухару и Самарканд', 'только что');
+  const cityList = [...new Set(driversList.map(d => d.city).filter(Boolean))].join(', ');
+  addActivity('system', `<b>Запросы отправлены</b> ${driversList.length} ${driversList.length === 1 ? 'водителю' : 'водителям'}${cityList ? ' · ' + cityList : ''}`, 'только что');
 
   // Scroll
   setTimeout(() => document.getElementById('step-4').scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
@@ -2614,8 +2666,12 @@ function sendToDrivers() {
   // Start SLA timer
   startSlaTimer();
 
-  // Run demo simulation
-  simulateConfirmations();
+  // Run demo simulation only in demo mode
+  if (useDemo) {
+    simulateConfirmations();
+  } else {
+    addActivity('info', '<b>Ожидание реальных подтверждений</b> · водители отвечают через Telegram Mini App', 'только что');
+  }
 
   toast('Запросы отправлены · ожидаем ответов');
 }
@@ -2629,7 +2685,7 @@ function renderConfirmCard(d) {
   el.className = 'cdrv pending';
   el.dataset.driverId = d.id;
   el.innerHTML = `
-    <div class="cdrv-avatar">${d.id}</div>
+    <div class="cdrv-avatar">${d._initials || d.id}</div>
     <div class="cdrv-info">
       <div class="cdrv-name">${d.name}</div>
       <div class="cdrv-meta">${d.city} · ${d.segments} ${d.segments === 1 ? 'сегмент' : 'сегмента'}</div>
