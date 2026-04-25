@@ -2048,16 +2048,58 @@ function renderGreeting() {
 }
 
 function renderProfile() {
-  // Placeholder — старый шаблон профиля использует статические данные
-  // Здесь можно обновить ключевые элементы
   try {
-    const pfFields = document.querySelectorAll('#view-profile .pf-field');
-    if (pfFields.length && state.driver) {
-      // Field mapping зависит от разметки старого шаблона. Для MVP просто ставим ФИО в первый .pf-name если есть
+    if (!state.user && !state.driver) return;
+
+    const fullName = state.user?.full_name || 'Водитель';
+
+    // Инициалы (первые буквы имени и фамилии)
+    const initials = fullName
+      .split(/\s+/)
+      .map(s => s[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'В';
+
+    // Avatar
+    const avatar = document.querySelector('#view-profile .profile-avatar');
+    if (avatar) avatar.textContent = initials;
+
+    // Name
+    const nameEl = document.querySelector('#view-profile .profile-name');
+    if (nameEl) nameEl.textContent = fullName;
+
+    // Subtitle (город · DMC)
+    const cityEl = document.querySelector('#view-profile .profile-city');
+    if (cityEl) {
+      const dmcName = state.dmc?.name || 'WayloAI';
+      cityEl.textContent = `Ташкент · ${dmcName}`;
     }
-    const nameHolders = document.querySelectorAll('#view-profile .pf-name, #view-profile .driver-name');
-    nameHolders.forEach(el => { if (state.user) el.textContent = state.user.full_name || ''; });
-  } catch (e) { console.warn('renderProfile minor err', e); }
+
+    // Vehicle info — обновляем только если данные есть, иначе оставляем плейсхолдеры
+    const v = state.vehicle;
+    if (v) {
+      const rows = document.querySelectorAll('#view-profile .p-info-card .p-info-row .pi-value');
+      if (rows.length >= 1) {
+        const makeModel = [v.make, v.model, v.year].filter(Boolean).join(' ');
+        if (makeModel) rows[0].textContent = makeModel;
+      }
+      if (rows.length >= 2) {
+        const bodyType = v.body_type || v.type || v.vehicle_type;
+        const capacity = v.pax_capacity || v.capacity || v.pax;
+        const typeStr = [bodyType, capacity ? `${capacity} мест` : null].filter(Boolean).join(' · ');
+        if (typeStr) rows[1].textContent = typeStr;
+      }
+      if (rows.length >= 3) {
+        const plate = v.plate || v.license_plate || v.reg_number || v.registration_number;
+        if (plate) rows[2].textContent = plate;
+      }
+      // Страховку (rows[3]) пока не трогаем — нет данных в схеме
+    }
+  } catch (e) {
+    console.warn('renderProfile minor err', e);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
