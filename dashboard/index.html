@@ -33,6 +33,8 @@
   --success-soft: #E9F5EC;
   --warn: #B77300;
   --warn-soft: #FAEFD9;
+  --warn-border: #E0B968;
+  --warn-ink: #6B4500;
   --danger: #C93434;
   --danger-soft: #FBE9E9;
 
@@ -919,6 +921,246 @@ button { font-family: inherit; }
   border: 1px solid var(--line);
   border-radius: 4px;
   font-weight: 500;
+}
+
+/* HITL Review (Step 4) */
+.review-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.rs-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.rs-num {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--primary-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.rs-lbl {
+  font-size: 12px;
+  color: var(--hint);
+  margin-top: 4px;
+}
+.review-warnings {
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-border);
+  border-left: 3px solid var(--warn);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--warn-ink);
+}
+.review-warnings .rw-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--warn-ink);
+}
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.review-day {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.review-day-head {
+  padding: 10px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--ink);
+}
+.review-day-head .rd-date {
+  font-weight: 600;
+}
+.review-day-head .rd-meta {
+  color: var(--hint);
+  font-size: 12px;
+}
+.review-assign {
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 32px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+.review-assign:last-child { border-bottom: none; }
+.review-assign.empty-day {
+  color: var(--hint);
+  font-style: italic;
+  grid-template-columns: 1fr;
+  font-size: 13px;
+  padding: 14px 16px;
+}
+.ra-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.ra-avatar.warning {
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.ra-avatar.empty {
+  background: var(--surface-2);
+  color: var(--hint);
+}
+.ra-info { min-width: 0; }
+.ra-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--primary-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ra-meta {
+  font-size: 12px;
+  color: var(--hint);
+  margin-top: 2px;
+}
+.ra-meta .city-tag {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  margin-right: 4px;
+}
+.ra-segments {
+  font-size: 11px;
+  color: var(--hint);
+  background: var(--surface-2);
+  padding: 3px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.ra-replace-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--primary-ink);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.ra-replace-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+.ra-replace-btn.edited {
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+/* Modal for driver replacement */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-backdrop.on { display: flex; }
+.modal-box {
+  background: var(--surface);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 520px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.modal-head {
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-head h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-ink);
+  margin: 0 0 4px;
+}
+.modal-head .modal-sub {
+  font-size: 13px;
+  color: var(--hint);
+}
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+}
+.modal-driver-opt {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.modal-driver-opt:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.modal-driver-opt.current {
+  background: var(--surface-2);
+  cursor: default;
+  opacity: 0.6;
+}
+.modal-driver-opt.current:hover {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+.modal-driver-opt .mdo-meta {
+  font-size: 11px;
+  color: var(--hint);
+}
+.modal-foot {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.modal-empty {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--hint);
+  font-size: 13px;
 }
 
 /* driver list */
@@ -1899,6 +2141,13 @@ button { font-family: inherit; }
       <div class="snav-num"><span class="snav-num-text">4</span></div>
       <div class="snav-text">
         <div class="label">Шаг 4</div>
+        <div class="title">Проверка плана</div>
+      </div>
+    </div>
+    <div class="snav-item" data-snav="5">
+      <div class="snav-num"><span class="snav-num-text">5</span></div>
+      <div class="snav-text">
+        <div class="label">Шаг 5</div>
         <div class="title">Подтверждение водителей</div>
       </div>
     </div>
@@ -2079,13 +2328,12 @@ button { font-family: inherit; }
 
       <!-- Actions -->
       <div class="actbar">
-        <button class="btn primary" onclick="sendToDrivers()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Отправить 4 водителям
+        <button class="btn primary" id="open-review-btn" onclick="openPlanReview()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          К проверке плана
         </button>
         <button class="btn" onclick="toast('Открываем детальный календарь')">Показать календарь</button>
         <button class="btn" onclick="toast('Готовим PDF-отчёт для DMC')">Экспорт в PDF</button>
-        <button class="btn" onclick="saveSQL()">Сохранить в базу</button>
         <button class="btn ghost" style="margin-left:auto" onclick="resetAll()">+ Новая заявка</button>
       </div>
 
@@ -2097,17 +2345,70 @@ button { font-family: inherit; }
     </div>
   </div>
 
-  <!-- STEP 4 · Driver confirmations -->
+  <!-- STEP 4 · Plan Review (HITL gate) -->
   <div class="step" id="step-4" style="display:none">
     <div class="step-head">
       <div class="step-num-big">4</div>
       <div class="step-head-text">
-        <h2>Ждём подтверждения от водителей</h2>
-        <p>Каждому водителю отправлено push-уведомление. У них <b>15 минут</b>, чтобы принять заявку. При отказе или молчании система автоматически найдёт замену из следующего по рейтингу.</p>
+        <h2>Проверка плана</h2>
+        <p>ИИ предложил назначения, но <b>водители ещё их не получили</b>. Проверьте, при необходимости замените водителей и нажмите «Подтвердить и отправить» — только после этого пойдут push-уведомления.</p>
       </div>
       <span class="step-status-badge" id="step-4-status" style="display:none">
         <span class="dot"></span>
         <span id="step-4-status-text">Готово</span>
+      </span>
+    </div>
+    <div class="step-body">
+
+      <!-- Plan summary -->
+      <div class="review-summary" id="review-summary">
+        <div class="rs-stat">
+          <div class="rs-num" id="rs-assignments">—</div>
+          <div class="rs-lbl">назначений</div>
+        </div>
+        <div class="rs-stat">
+          <div class="rs-num" id="rs-cities">—</div>
+          <div class="rs-lbl">городов</div>
+        </div>
+        <div class="rs-stat">
+          <div class="rs-num" id="rs-segments">—</div>
+          <div class="rs-lbl">сегментов</div>
+        </div>
+        <div class="rs-stat">
+          <div class="rs-num" id="rs-corrections">0</div>
+          <div class="rs-lbl">правок DMC</div>
+        </div>
+      </div>
+
+      <!-- Warnings (если AI confidence низкий или есть дубли по (city,date)) -->
+      <div class="review-warnings" id="review-warnings" style="display:none"></div>
+
+      <!-- Assignments list grouped by date -->
+      <div class="review-list" id="review-list"></div>
+
+      <!-- Actions -->
+      <div class="actbar">
+        <button class="btn primary" id="confirm-dispatch-btn" onclick="confirmAndDispatch()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Подтвердить и отправить водителям
+        </button>
+        <button class="btn" onclick="setSnav(3); document.getElementById('step-3').scrollIntoView({behavior:'smooth'})">← Вернуться к маршруту</button>
+        <button class="btn ghost" style="margin-left:auto" onclick="resetAll()">+ Новая заявка</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 · Driver confirmations -->
+  <div class="step" id="step-5" style="display:none">
+    <div class="step-head">
+      <div class="step-num-big">5</div>
+      <div class="step-head-text">
+        <h2>Ждём подтверждения от водителей</h2>
+        <p>Каждому водителю отправлено push-уведомление. У них <b>15 минут</b>, чтобы принять заявку. При отказе или молчании система автоматически найдёт замену из следующего по рейтингу.</p>
+      </div>
+      <span class="step-status-badge" id="step-5-status" style="display:none">
+        <span class="dot"></span>
+        <span id="step-5-status-text">Готово</span>
       </span>
     </div>
     <div class="step-body">
@@ -2117,7 +2418,7 @@ button { font-family: inherit; }
         <div class="sb-icon">✓</div>
         <div class="sb-text">
           <div class="sb-title">Все водители подтверждены</div>
-          <div class="sb-desc">Заявка REQ-2026-0010 готова к исполнению. Вы получите уведомление за 2 часа до первого трансфера.</div>
+          <div class="sb-desc">Заявка готова к исполнению. Вы получите уведомление за 2 часа до первого трансфера.</div>
         </div>
       </div>
 
@@ -2239,6 +2540,22 @@ button { font-family: inherit; }
   </div>
 </aside>
 
+<!-- HITL: Driver replacement modal -->
+<div class="modal-backdrop" id="replace-modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="replace-modal-title">Заменить водителя</h3>
+      <div class="modal-sub" id="replace-modal-sub">—</div>
+    </div>
+    <div class="modal-body" id="replace-modal-body">
+      <div class="modal-empty">Загружаем альтернативных водителей…</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeReplaceModal()">Отмена</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast">
   <span class="toast-dot"></span>
   <span id="toast-msg">—</span>
@@ -2306,6 +2623,7 @@ const CITIES = { tashkent:'Ташкент', khiva:'Хива', bukhara:'Буха�
 // =========================
 const PLATFORM_CONFIG = {
   n8nUrl: 'https://alphagroupuz.app.n8n.cloud/webhook/waylo-intake',
+  confirmUrl: 'https://alphagroupuz.app.n8n.cloud/webhook/waylo-confirm-dispatch',
   n8nAuth: '',
   sqlEndpoint: 'https://kbvcetuscbbnaeztxenn.supabase.co',
   sqlToken: 'REPLACE_WITH_YOUR_ANON_KEY'
@@ -2313,6 +2631,7 @@ const PLATFORM_CONFIG = {
 
 const config = {
   get n8nUrl() { return PLATFORM_CONFIG.n8nUrl; },
+  get confirmUrl() { return PLATFORM_CONFIG.confirmUrl; },
   get n8nAuth() { return PLATFORM_CONFIG.n8nAuth; },
   get sqlEndpoint() { return PLATFORM_CONFIG.sqlEndpoint; },
   get sqlToken() { return PLATFORM_CONFIG.sqlToken; },
@@ -2351,13 +2670,410 @@ function setSnav(activeNum) {
   });
 }
 
+// =========================
+// HITL · Plan Review (Step 4)
+// =========================
+
+let hitlState = null; // { request_db_id, assignments[], drivers_pool[], corrections[] }
+
+const CITY_RU = {
+  tashkent: 'Ташкент',
+  samarkand: 'Самарканд',
+  bukhara: 'Бухара',
+  khiva: 'Хива',
+  urganch: 'Ургенч',
+  gijduvan: 'Гиждуван',
+  fergana: 'Фергана',
+  namangan: 'Наманган'
+};
+
+function ruDate(iso) {
+  if (!iso) return '—';
+  const s = String(iso).substring(0, 10);
+  const [y, m, d] = s.split('-');
+  if (!y || !m || !d) return s;
+  const months = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+  return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+}
+
+function ruWeekday(iso) {
+  if (!iso) return '';
+  const date = new Date(String(iso).substring(0, 10) + 'T00:00:00');
+  const days = ['вс','пн','вт','ср','чт','пт','сб'];
+  return days[date.getDay()];
+}
+
+function initials(fullName) {
+  if (!fullName) return '?';
+  return fullName.split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
+}
+
+// Open the Plan Review step (HITL gate before drivers receive anything)
+async function openPlanReview() {
+  const data = window._lastResult;
+  if (!data) {
+    toast('Нет данных для проверки. Сначала загрузите заявку.', 'error');
+    return;
+  }
+  if (config.demoMode) {
+    // В демо режиме просто показываем шаг с фейковым превью без реальных API
+    openPlanReviewDemo(data);
+    return;
+  }
+  if (!data.request_db_id) {
+    toast('Заявка не сохранена в БД — режим проверки недоступен.', 'error');
+    return;
+  }
+
+  // Show step 4
+  document.getElementById('step-4').style.display = 'block';
+  setSnav(4);
+  setTimeout(() => document.getElementById('step-4').scrollIntoView({ behavior: 'smooth' }), 150);
+
+  // Init state
+  hitlState = {
+    request_db_id: data.request_db_id,
+    request_id: data.request_id,
+    tour_name: data.tour_name,
+    pax: data.pax,
+    vehicle_type: data.vehicle_type,
+    days: data.days || [],
+    proposed_assignments: (data.proposed_assignments || []).map(a => ({...a})),
+    corrections: []
+  };
+
+  // Render
+  renderReviewSummary();
+  renderReviewList();
+}
+
+function openPlanReviewDemo(data) {
+  document.getElementById('step-4').style.display = 'block';
+  setSnav(4);
+  setTimeout(() => document.getElementById('step-4').scrollIntoView({ behavior: 'smooth' }), 150);
+  hitlState = {
+    request_db_id: null,
+    request_id: data.request_id,
+    tour_name: data.tour_name,
+    pax: data.pax,
+    vehicle_type: data.vehicle_type,
+    days: data.days || [],
+    proposed_assignments: [],
+    corrections: [],
+    demo: true
+  };
+  // В демо собираем proposed_assignments на лету из data.assignments
+  const seen = new Set();
+  (data.days || []).forEach(d => {
+    (data.assignments && data.assignments[d.day_number] || []).forEach(a => {
+      const key = `${a.city}__${d.date}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      hitlState.proposed_assignments.push({
+        id: 'demo-' + key,
+        driver_name: a.driver,
+        dispatch_city: a.city,
+        assignment_date: d.date,
+        status: 'pending',
+        is_demo: true
+      });
+    });
+  });
+  renderReviewSummary();
+  renderReviewList();
+}
+
+function renderReviewSummary() {
+  if (!hitlState) return;
+  const a = hitlState.proposed_assignments;
+  const cities = new Set(a.map(x => x.dispatch_city));
+  const segs = a.reduce((n, x) => n + (x.segments_count || 1), 0);
+  const segsTotal = (hitlState.days || []).reduce((n, d) => n + (d.transfers || []).length, 0);
+  document.getElementById('rs-assignments').textContent = a.length;
+  document.getElementById('rs-cities').textContent = cities.size;
+  document.getElementById('rs-segments').textContent = segsTotal;
+  document.getElementById('rs-corrections').textContent = hitlState.corrections.length;
+
+  // Warnings
+  const warnings = [];
+  // 1. Дубль по (city, date)
+  const cityDateCounts = {};
+  a.forEach(x => {
+    const key = `${x.dispatch_city}__${String(x.assignment_date).substring(0,10)}`;
+    cityDateCounts[key] = (cityDateCounts[key] || 0) + 1;
+  });
+  Object.entries(cityDateCounts).forEach(([k, n]) => {
+    if (n > 1) {
+      const [city, date] = k.split('__');
+      warnings.push(`На ${ruDate(date)} в городе ${CITY_RU[city] || city} назначено <b>${n} водителей</b> — выберите одного, остальных удалите.`);
+    }
+  });
+  // 2. День без водителя при наличии трансферов
+  (hitlState.days || []).forEach(d => {
+    const transfers = d.transfers || [];
+    if (transfers.length === 0) return;
+    const transferCities = [...new Set(transfers.map(t => (t.dispatch_city || t.city_from || t.city || '').toLowerCase()).filter(Boolean))];
+    transferCities.forEach(c => {
+      const has = a.some(x => x.dispatch_city === c && String(x.assignment_date).substring(0,10) === d.date);
+      if (!has) warnings.push(`День ${d.day_number} (${ruDate(d.date)}): в городе ${CITY_RU[c] || c} есть трансферы, но <b>водитель не назначен</b>. Назначьте вручную.`);
+    });
+  });
+
+  const wrap = document.getElementById('review-warnings');
+  if (warnings.length === 0) {
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+  } else {
+    wrap.style.display = 'block';
+    wrap.innerHTML = `<div class="rw-title">Внимание · ${warnings.length} ${warnings.length === 1 ? 'замечание' : 'замечаний'}</div>` +
+      warnings.map(w => `<div>• ${w}</div>`).join('');
+  }
+}
+
+function renderReviewList() {
+  if (!hitlState) return;
+  const list = document.getElementById('review-list');
+  list.innerHTML = '';
+
+  const days = hitlState.days || [];
+  // Группа: assignments по дню (через assignment_date == day.date)
+  days.forEach(day => {
+    const dayBlock = document.createElement('div');
+    dayBlock.className = 'review-day';
+
+    const head = document.createElement('div');
+    head.className = 'review-day-head';
+    head.innerHTML = `
+      <div>
+        <span class="rd-date">День ${day.day_number} · ${ruDate(day.date)}</span>
+        <span class="rd-meta"> · ${ruWeekday(day.date)}</span>
+      </div>
+      <div class="rd-meta">${(day.transfers || []).length} ${(day.transfers || []).length === 1 ? 'сегмент' : 'сегментов'}</div>
+    `;
+    dayBlock.appendChild(head);
+
+    const dayAssignments = hitlState.proposed_assignments.filter(a =>
+      String(a.assignment_date).substring(0, 10) === day.date
+    );
+
+    if (dayAssignments.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'review-assign empty-day';
+      empty.textContent = day.empty_reason || 'Трансферы не требуются — водители не нужны';
+      dayBlock.appendChild(empty);
+    } else {
+      dayAssignments.forEach(asn => {
+        dayBlock.appendChild(renderAssignmentRow(asn, day));
+      });
+    }
+
+    list.appendChild(dayBlock);
+  });
+}
+
+function renderAssignmentRow(asn, day) {
+  const row = document.createElement('div');
+  row.className = 'review-assign';
+  row.dataset.assignmentId = asn.id;
+
+  const name = asn.driver_name || asn.full_name || '—';
+  const init = initials(name);
+  const wasEdited = hitlState.corrections.some(c => c.assignment_id === asn.id);
+  const cityRu = CITY_RU[asn.dispatch_city] || asn.dispatch_city;
+
+  // Сегменты — посчитаем сколько в этом dispatch_city за этот день
+  const segs = (day.transfers || []).filter(t =>
+    (t.dispatch_city || t.city_from || t.city || '').toLowerCase() === asn.dispatch_city
+  ).length || asn.segments_count || 1;
+
+  row.innerHTML = `
+    <div class="ra-avatar ${wasEdited ? 'warning' : ''}">${init}</div>
+    <div class="ra-info">
+      <div class="ra-name">${name}</div>
+      <div class="ra-meta"><span class="city-tag">${cityRu}</span>tier ${asn.tier || 1} · ${asn.status || 'pending'}</div>
+    </div>
+    <div class="ra-segments">${segs} ${segs === 1 ? 'сегмент' : segs < 5 ? 'сегмента' : 'сегментов'}</div>
+    <button class="ra-replace-btn ${wasEdited ? 'edited' : ''}" onclick="openReplaceModal('${asn.id}')">${wasEdited ? '✓ Заменён' : 'Заменить'}</button>
+  `;
+  return row;
+}
+
+// Open driver-replacement modal
+async function openReplaceModal(assignmentId) {
+  const asn = hitlState.proposed_assignments.find(a => a.id === assignmentId);
+  if (!asn) return;
+
+  const modal = document.getElementById('replace-modal');
+  document.getElementById('replace-modal-title').textContent = 'Заменить водителя';
+  document.getElementById('replace-modal-sub').textContent =
+    `${CITY_RU[asn.dispatch_city] || asn.dispatch_city} · ${ruDate(asn.assignment_date)} · текущий: ${asn.driver_name || '—'}`;
+
+  const body = document.getElementById('replace-modal-body');
+  body.innerHTML = '<div class="modal-empty">Загружаем альтернативных водителей…</div>';
+
+  modal.classList.add('on');
+  modal.dataset.assignmentId = assignmentId;
+
+  // Demo mode: статический список
+  if (hitlState.demo || !config.n8nUrl) {
+    const demoAlternatives = [
+      { id: 'd1', full_name: 'Рахимов Мурад', rating: 4.6, trips_completed: 89, vehicle_label: 'Mercedes Sprinter · 12 мест' },
+      { id: 'd2', full_name: 'Назаров Санджар', rating: 4.7, trips_completed: 142, vehicle_label: 'Hyundai Staria · 8 мест' },
+      { id: 'd3', full_name: 'Каримов Наим', rating: 4.5, trips_completed: 67, vehicle_label: 'Toyota Hiace · 12 мест' }
+    ];
+    renderReplaceOptions(asn, demoAlternatives);
+    return;
+  }
+
+  // Real mode: пока используем recommended_drivers из последнего ответа n8n
+  // Позже сюда добавим прямой запрос к Supabase RPC find_available_drivers
+  try {
+    const allDrivers = (window._lastResult && window._lastResult.recommended_drivers) || [];
+    const alternatives = allDrivers.filter(d => d.name !== asn.driver_name);
+    renderReplaceOptions(asn, alternatives.map(d => ({
+      id: d.id || d.driver_id || d.name,
+      full_name: d.name,
+      rating: d.rating,
+      trips_completed: d.trips,
+      vehicle_label: d.car || ''
+    })));
+  } catch (err) {
+    body.innerHTML = `<div class="modal-empty">Не удалось загрузить альтернативы: ${err.message}</div>`;
+  }
+}
+
+function renderReplaceOptions(asn, alternatives) {
+  const body = document.getElementById('replace-modal-body');
+  if (!alternatives || alternatives.length === 0) {
+    body.innerHTML = '<div class="modal-empty">Нет других доступных водителей в этом городе на эту дату.</div>';
+    return;
+  }
+  // Текущий водитель в начало (read-only)
+  body.innerHTML = `
+    <div class="modal-driver-opt current">
+      <div class="ra-avatar">${initials(asn.driver_name)}</div>
+      <div>
+        <div class="ra-name">${asn.driver_name || '—'}</div>
+        <div class="mdo-meta">текущий выбор</div>
+      </div>
+      <div class="mdo-meta">★ ${asn.rating || '—'}</div>
+    </div>
+  ` + alternatives.map(d => `
+    <div class="modal-driver-opt" onclick="applyDriverReplacement('${asn.id}', '${d.id}', '${(d.full_name || '').replace(/'/g, '&#39;')}', ${d.rating || 0})">
+      <div class="ra-avatar">${initials(d.full_name)}</div>
+      <div>
+        <div class="ra-name">${d.full_name}</div>
+        <div class="mdo-meta">${d.vehicle_label || ''} · ${d.trips_completed || 0} поездок</div>
+      </div>
+      <div class="mdo-meta">★ ${d.rating || '—'}</div>
+    </div>
+  `).join('');
+}
+
+function applyDriverReplacement(assignmentId, newDriverId, newDriverName, newRating) {
+  const asn = hitlState.proposed_assignments.find(a => a.id === assignmentId);
+  if (!asn) return;
+
+  // Лог в corrections
+  hitlState.corrections.push({
+    assignment_id: assignmentId,
+    field_changed: 'driver_id',
+    ai_value: { driver_id: asn.driver_id, driver_name: asn.driver_name },
+    dmc_value: { driver_id: newDriverId, driver_name: newDriverName },
+    corrected_at: new Date().toISOString()
+  });
+
+  // Применяем в state
+  asn.driver_id = newDriverId;
+  asn.driver_name = newDriverName;
+  asn.rating = newRating;
+
+  closeReplaceModal();
+  renderReviewSummary();
+  renderReviewList();
+  toast(`Водитель заменён · ${newDriverName}`);
+}
+
+function closeReplaceModal() {
+  document.getElementById('replace-modal').classList.remove('on');
+}
+
+// Final confirm: send to webhook
+async function confirmAndDispatch() {
+  if (!hitlState) return;
+  const btn = document.getElementById('confirm-dispatch-btn');
+  btn.disabled = true;
+  btn.textContent = 'Отправляем…';
+
+  // В demo режиме — просто переход дальше
+  if (hitlState.demo || !config.confirmUrl) {
+    // Если нет confirmUrl — fallback на старый sendToDrivers (демо/локально)
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Подтвердить и отправить водителям';
+    document.getElementById('step-4-status').style.display = 'inline-flex';
+    document.getElementById('step-4-status-text').textContent = 'Подтверждено';
+    sendToDrivers();
+    return;
+  }
+
+  try {
+    const payload = {
+      request_id: hitlState.request_db_id,
+      external_id: hitlState.request_id,
+      corrections: hitlState.corrections,
+      final_assignments: hitlState.proposed_assignments.map(a => ({
+        id: a.id,
+        driver_id: a.driver_id,
+        dispatch_city: a.dispatch_city,
+        assignment_date: String(a.assignment_date).substring(0, 10)
+      }))
+    };
+    const headers = { 'Content-Type': 'application/json' };
+    if (config.n8nAuth) headers['Authorization'] = config.n8nAuth;
+
+    const r = await fetch(config.confirmUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Подтверждено';
+    btn.style.background = 'var(--success)';
+    document.getElementById('step-4-status').style.display = 'inline-flex';
+    document.getElementById('step-4-status-text').textContent = 'Подтверждено';
+
+    toast('План подтверждён · водители получат уведомления');
+    setTimeout(() => sendToDrivers(), 700);
+
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Подтвердить и отправить водителям';
+    toast('Ошибка отправки: ' + err.message, 'error');
+  }
+}
+
+// Click outside modal to close
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('replace-modal');
+  if (e.target === modal) closeReplaceModal();
+});
+
+// Esc to close modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeReplaceModal();
+});
+
 async function handleUpload(file) {
   document.getElementById('file-name').textContent = file.name;
   document.getElementById('file-size').textContent = fmtBytes(file.size);
 
   document.getElementById('step-2').style.display = 'block';
   document.getElementById('step-3').style.display = 'none';
+  document.getElementById('step-4').style.display = 'none';
+  document.getElementById('step-5').style.display = 'none';
   document.getElementById('step-2-status').style.display = 'none';
+  hitlState = null;
 
   setSnav(2);
   resetPipeline();
@@ -2588,9 +3304,9 @@ function fmtBytes(b) {
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function sendToDrivers() {
-  // Open Step 4
-  document.getElementById('step-4').style.display = 'block';
-  setSnav(4);
+  // Open Step 5 (waiting for driver confirmations)
+  document.getElementById('step-5').style.display = 'block';
+  setSnav(5);
 
   // Build initial confirm cards from real n8n result if available, else from DEMO_DATA
   const useDemo = config.demoMode || !window._lastResult;
@@ -2605,8 +3321,31 @@ function sendToDrivers() {
       { id: 'ZU', name: 'Зубаев Умид', city: 'Бухара', segments: 2, status: 'pending', sentAt: Date.now() },
       { id: 'SK', name: 'Смирнов Константин', city: 'Самарканд', segments: 1, status: 'pending', sentAt: Date.now() }
     ];
+  } else if (hitlState && hitlState.proposed_assignments && hitlState.proposed_assignments.length > 0) {
+    // Используем подтверждённые ассайнменты из HITL (с правками DMC)
+    const cityRu = { tashkent:'Ташкент', samarkand:'Самарканд', bukhara:'Бухара', khiva:'Хива', urganch:'Ургенч' };
+    const segmentsByCityDate = {};
+    (lastData.days || []).forEach(d => {
+      (d.transfers || []).forEach(t => {
+        const key = `${(t.city || '').toLowerCase()}__${d.date}`;
+        segmentsByCityDate[key] = (segmentsByCityDate[key] || 0) + 1;
+      });
+    });
+    driversList = hitlState.proposed_assignments.map((a, idx) => {
+      const dateStr = String(a.assignment_date).substring(0, 10);
+      const segCount = segmentsByCityDate[`${a.dispatch_city}__${dateStr}`] || 1;
+      return {
+        id: 'D' + idx,
+        name: a.driver_name || '—',
+        city: cityRu[a.dispatch_city] || a.dispatch_city,
+        segments: segCount,
+        status: 'pending',
+        sentAt: Date.now(),
+        _initials: initials(a.driver_name || '?')
+      };
+    });
   } else {
-    // Build from real recommended_drivers + count segments per dispatch_city
+    // Fallback: build from recommended_drivers
     const segmentsByCity = {};
     (lastData.days || []).forEach(d => {
       (d.transfers || []).forEach(t => {
@@ -2616,12 +3355,10 @@ function sendToDrivers() {
     });
     const cityRu = { tashkent:'Ташкент', samarkand:'Самарканд', bukhara:'Бухара', khiva:'Хива', urganch:'Ургенч' };
     driversList = (lastData.recommended_drivers || []).map((d, idx) => {
-      // Try to find which city this driver is dispatched to via assignments
       let dispatchCity = '';
       Object.values(lastData.assignments || {}).flat().forEach(a => {
         if (a.driver === d.name && !dispatchCity) dispatchCity = a.city;
       });
-      const initials = (d.name || '').split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase();
       return {
         id: 'D' + idx,
         name: d.name,
@@ -2629,7 +3366,7 @@ function sendToDrivers() {
         segments: segmentsByCity[dispatchCity] || 0,
         status: 'pending',
         sentAt: Date.now(),
-        _initials: initials
+        _initials: (d.name || '').split(' ').map(p => p[0]).slice(0,2).join('').toUpperCase()
       };
     });
   }
@@ -2641,7 +3378,7 @@ function sendToDrivers() {
   document.getElementById('confirm-total').textContent = String(driversList.length);
   document.getElementById('progress-fill').style.width = '0%';
   document.getElementById('success-banner').classList.remove('on');
-  document.getElementById('step-4-status').style.display = 'none';
+  document.getElementById('step-5-status').style.display = 'none';
   document.getElementById('complete-btn').style.display = 'none';
 
   confirmationState = {
@@ -2661,7 +3398,7 @@ function sendToDrivers() {
   addActivity('system', `<b>Запросы отправлены</b> ${driversList.length} ${driversList.length === 1 ? 'водителю' : 'водителям'}${cityList ? ' · ' + cityList : ''}`, 'только что');
 
   // Scroll
-  setTimeout(() => document.getElementById('step-4').scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+  setTimeout(() => document.getElementById('step-5').scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
 
   // Start SLA timer
   startSlaTimer();
@@ -2775,12 +3512,12 @@ function updateProgress() {
 
   if (confirmed === total) {
     document.getElementById('success-banner').classList.add('on');
-    document.getElementById('step-4-status').style.display = 'inline-flex';
-    document.getElementById('step-4-status-text').textContent = 'Все подтвердили';
+    document.getElementById('step-5-status').style.display = 'inline-flex';
+    document.getElementById('step-5-status-text').textContent = 'Все подтвердили';
     document.getElementById('complete-btn').style.display = 'inline-flex';
     clearInterval(slaTimerInterval);
     Object.values(cardTimerIntervals).forEach(i => clearInterval(i));
-    addActivity('system', '<b>Все 4 водителя подтвердили</b> — заявка готова к исполнению', 'только что');
+    addActivity('system', `<b>Все ${total} водителей подтвердили</b> — заявка готова к исполнению`, 'только что');
     toast('Заявка полностью подтверждена');
   }
 }
@@ -2904,6 +3641,7 @@ function resetAll() {
   document.getElementById('step-2').style.display = 'none';
   document.getElementById('step-3').style.display = 'none';
   document.getElementById('step-4').style.display = 'none';
+  document.getElementById('step-5').style.display = 'none';
   fi.value = '';
   setSnav(1);
   // cleanup timers
@@ -2911,6 +3649,8 @@ function resetAll() {
   Object.values(cardTimerIntervals).forEach(i => clearInterval(i));
   cardTimerIntervals = {};
   confirmationState = null;
+  // HITL state
+  hitlState = null;
   document.getElementById('step-1').scrollIntoView({ behavior: 'smooth' });
 }
 
