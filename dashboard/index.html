@@ -1910,19 +1910,18 @@ button { font-family: inherit; }
       <div class="step-num-big">1</div>
       <div class="step-head-text">
         <h2>Загрузите заявку от DMC</h2>
-        <p>Перетащите файл DOCX или PDF с программой тура — система автоматически распознает все трансферы</p>
+        <p>Перетащите файл PDF с программой тура — система автоматически распознает все трансферы</p>
       </div>
     </div>
     <div class="step-body">
       <div class="dropzone" id="drop">
-        <input type="file" id="file-input" accept=".docx,.pdf">
+        <input type="file" id="file-input" accept=".pdf">
         <div class="dz-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </div>
         <div class="dz-title">Перетащите файл сюда</div>
         <div class="dz-hint">или нажмите, чтобы выбрать документ на компьютере</div>
         <div class="dz-formats">
-          <span class="fmt">.docx</span>
           <span class="fmt">.pdf</span>
           <span style="color:var(--hint)">·</span>
           <span>до 20 MB</span>
@@ -1957,7 +1956,7 @@ button { font-family: inherit; }
           <div class="ps-num"><span class="ps-num-text">1</span></div>
           <div class="ps-text">
             <div class="ps-title">Получение документа</div>
-            <div class="ps-desc">Извлечение текста из DOCX или PDF</div>
+            <div class="ps-desc">Извлечение текста из PDF</div>
           </div>
           <div class="ps-time"></div>
         </div>
@@ -2336,7 +2335,7 @@ dz.addEventListener('drop', (e) => {
 fi.addEventListener('change', (e) => { const f = e.target.files[0]; if (f) handleUpload(f); });
 document.getElementById('try-sample').addEventListener('click', (e) => {
   e.preventDefault();
-  handleUpload({ name: 'Hugo_Villar_1_USA.docx', size: 48234, isDemoSample: true });
+  handleUpload({ name: 'Hugo_Villar_1_USA.pdf', size: 48234, isDemoSample: true });
 });
 
 function setSnav(activeNum) {
