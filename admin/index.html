@@ -632,15 +632,13 @@ tbody tr:hover { background: #FAFAF7; }
   place-items: center;
   border-radius: 8px;
   font-size: 13px;
-  cursor: pointer;
+  cursor: default;
   font-family: 'Roboto Mono', monospace;
   border: 1px solid transparent;
   transition: all 0.1s;
   user-select: none;
 }
-.cal-day:hover { border-color: var(--brand); }
-.cal-day.other { color: var(--text-dim); opacity: 0.3; cursor: default; }
-.cal-day.other:hover { border-color: transparent; }
+.cal-day.other { color: var(--text-dim); opacity: 0.3; }
 .cal-day.free { background: #F5F5F0; color: var(--text); }
 .cal-day.booked { background: var(--brand); color: white; }
 .cal-day.blocked { background: var(--danger); color: white; }
@@ -1106,8 +1104,9 @@ tbody tr:hover { background: #FAFAF7; }
           <div class="cal-legend-item"><div class="legend-dot blocked"></div>Заблокирован</div>
         </div>
       </div>
-      <p style="font-size:12px; color:var(--text-muted); margin-top:12px; text-align:center;">
-        Клик по дню — переключение статуса «Свободен / Заблокирован»
+      <p style="font-size:12px; color:var(--text-muted); margin-top:12px; text-align:center; line-height:1.5;">
+        🔒 Только просмотр. Блокировки устанавливаются водителем через приложение,<br>
+        а занятость заявками — автоматически после подтверждения ассайнмента.
       </p>
     </div>
   </div>
@@ -1629,30 +1628,13 @@ function renderCalendar() {
     const dateStr = `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const status = calendarState.slots[dateStr] || 'free';
     const isToday = dateStr === today;
-    html += `<div class="cal-day ${status}${isToday ? ' today' : ''}" onclick="toggleSlot('${dateStr}')">${d}</div>`;
+    html += `<div class="cal-day ${status}${isToday ? ' today' : ''}">${d}</div>`;
   }
   document.getElementById('cal-grid').innerHTML = html;
 }
-async function toggleSlot(dateStr) {
-  const currentStatus = calendarState.slots[dateStr] || 'free';
-  // booked не меняем руками (только через workflow)
-  if (currentStatus === 'booked') {
-    toast('error', 'День занят заявкой — нельзя изменить вручную');
-    return;
-  }
-  const newStatus = currentStatus === 'blocked' ? 'free' : 'blocked';
-  try {
-    await supabase.from('calendar_slots').upsert({
-      driver_id: calendarState.driverId,
-      slot_date: dateStr,
-      status: newStatus
-    }, { onConflict: 'driver_id,slot_date' });
-    calendarState.slots[dateStr] = newStatus;
-    renderCalendar();
-  } catch (err) {
-    toast('error', 'Не удалось обновить: ' + err.message);
-  }
-}
+// Календарь read-only: DMC видит занятость водителя, но не может её менять.
+// Блокировки создаются только водителем через Mini App (отпуск/больничный)
+// или системой при подтверждении ассайнмента (триггер fn_block_calendar_on_confirm).
 
 // ============================================================================
 // TOAST
