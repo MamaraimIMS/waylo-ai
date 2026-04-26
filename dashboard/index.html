@@ -2629,7 +2629,7 @@ const PLATFORM_CONFIG = {
   confirmUrl: 'https://alphagroupuz.app.n8n.cloud/webhook/waylo-confirm-dispatch',
   n8nAuth: '',
   sqlEndpoint: 'https://kbvcetuscbbnaeztxenn.supabase.co',
-  sqlToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtidmNldHVzY2JibmFlenR4ZW5uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzE3NTIsImV4cCI6MjA5MjQwNzc1Mn0.EM9bWi3UMLcp5cj60226rVCbkI0ZLlY5XAlSJYBe8Pc'
+  sqlToken: 'REPLACE_WITH_YOUR_ANON_KEY'
 };
 
 const config = {
@@ -3398,6 +3398,10 @@ function sendToDrivers() {
       const segCount = segmentsByCityDate[`${a.dispatch_city}__${dateStr}`] || 1;
       return {
         id: 'D' + idx,
+        assignment_id: a.id,                  // реальный UUID из БД для Realtime-матчинга
+        driver_id: a.driver_id,               // реальный driver_id для замены
+        dispatch_city: a.dispatch_city,       // нужен модалке замены
+        assignment_date: dateStr,             // нужен модалке замены
         name: a.driver_name || '—',
         city: cityRu[a.dispatch_city] || a.dispatch_city,
         segments: segCount,
@@ -3446,12 +3450,24 @@ function sendToDrivers() {
   confirmationState = {
     drivers: driversList,
     confirmed: 0,
+    declined: 0,
     total: driversList.length,
     slaStart: Date.now(),
-    slaDuration: 15 * 60 * 1000 // 15 min
+    slaDuration: 15 * 60 * 1000, // 15 min
+    request_db_id: hitlState?.request_db_id || null,  // для Realtime-фильтра
+    realtimeChannel: null
   };
 
   confirmationState.drivers.forEach(d => confirmList.appendChild(renderConfirmCard(d)));
+
+  // ════════════════════════════════════════════════════════════════
+  // Realtime: слушаем UPDATE driver_assignments для этой заявки
+  // Когда водитель в Mini App жмёт Принять/Отказаться → БД UPDATE →
+  // приходит payload → красим карточку без перезагрузки страницы
+  // ════════════════════════════════════════════════════════════════
+  if (!useDemo && sb && confirmationState.request_db_id) {
+    subscribeAssignmentUpdates(confirmationState.request_db_id);
+  }
 
   // Activity feed
   const actList = document.getElementById('activity-list');
@@ -3483,6 +3499,7 @@ function renderConfirmCard(d) {
   const el = document.createElement('div');
   el.className = 'cdrv pending';
   el.dataset.driverId = d.id;
+  if (d.assignment_id) el.dataset.assignmentId = d.assignment_id;
   el.innerHTML = `
     <div class="cdrv-avatar">${d._initials || d.id}</div>
     <div class="cdrv-info">
@@ -3499,6 +3516,135 @@ function renderConfirmCard(d) {
   `;
   startCardTimer(d.id);
   return el;
+}
+
+// ════════════════════════════════════════════════════════════════
+// REALTIME · подписка на изменения driver_assignments
+// ════════════════════════════════════════════════════════════════
+function subscribeAssignmentUpdates(requestDbId) {
+  if (!sb) {
+    console.warn('Realtime subscription skipped: Supabase client not initialized');
+    return;
+  }
+
+  // Закрываем старый канал если был
+  if (confirmationState.realtimeChannel) {
+    try { sb.removeChannel(confirmationState.realtimeChannel); } catch(e) {}
+    confirmationState.realtimeChannel = null;
+  }
+
+  const channelName = `step5_${requestDbId}_${Date.now()}`;
+  const channel = sb
+    .channel(channelName)
+    .on('postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'driver_assignments',
+        filter: `request_id=eq.${requestDbId}`
+      },
+      (payload) => {
+        console.log('[Realtime] driver_assignments UPDATE:', payload.new);
+        handleAssignmentUpdate(payload.new);
+      }
+    )
+    .subscribe((status) => {
+      console.log('[Realtime] subscription status:', status);
+      if (status === 'SUBSCRIBED') {
+        addActivity('info', '<b>Realtime активен</b> · ждём ответов водителей в реальном времени', 'только что');
+      }
+    });
+
+  confirmationState.realtimeChannel = channel;
+}
+
+function handleAssignmentUpdate(row) {
+  if (!confirmationState) return;
+  const drv = confirmationState.drivers.find(d => d.assignment_id === row.id);
+  if (!drv) {
+    console.warn('[Realtime] payload не относится к видимым карточкам:', row.id);
+    return;
+  }
+  // Игнорируем дубли (если статус уже учтён в UI)
+  if (drv.status === row.status) return;
+
+  if (row.status === 'confirmed') {
+    markConfirmedReal(drv);
+  } else if (row.status === 'declined') {
+    markDeclinedReal(drv, row.decline_reason || 'без указания причины');
+  }
+  // другие статусы (cancelled, etc.) пока игнорируем
+}
+
+function markConfirmedReal(drv) {
+  if (drv.status !== 'pending') return;
+  const card = document.querySelector(`.cdrv[data-driver-id="${drv.id}"]`);
+  if (!card) return;
+
+  drv.status = 'confirmed';
+  drv.confirmedAt = Date.now();
+  const timeSince = formatTimeSince(drv.confirmedAt - drv.sentAt);
+
+  card.classList.remove('pending');
+  card.classList.add('confirmed');
+  card.querySelector('.cdrv-status').innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+    Подтвердил · ${timeSince}
+  `;
+  card.querySelector('.cdrv-action').innerHTML = '';
+  clearInterval(cardTimerIntervals[drv.id]);
+
+  confirmationState.confirmed++;
+  addActivity('confirm', `<b>${drv.name}</b> принял заявку · ${drv.city}`, 'только что');
+  updateProgress();
+}
+
+function markDeclinedReal(drv, reason) {
+  if (drv.status !== 'pending') return;
+  const card = document.querySelector(`.cdrv[data-driver-id="${drv.id}"]`);
+  if (!card) return;
+
+  drv.status = 'declined';
+  drv.declinedAt = Date.now();
+  drv.declineReason = reason;
+  card.classList.remove('pending');
+  card.classList.add('declined');
+  card.querySelector('.cdrv-status').innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    Отказался · ${reason}
+  `;
+  // Кнопка "Заменить" — открывает модалку с альтернативами (как в Step 4)
+  card.querySelector('.cdrv-action').innerHTML = `
+    <button onclick="openReplaceFromStep5('${drv.id}')" style="background:var(--danger-soft,#fde8e8);color:var(--danger,#c93434);border:1px solid var(--danger,#c93434)">
+      Заменить водителя
+    </button>
+  `;
+  clearInterval(cardTimerIntervals[drv.id]);
+
+  confirmationState.declined++;
+  addActivity('decline', `<b>${drv.name}</b> отклонил заявку · причина: ${reason}`, 'только что');
+}
+
+// Открываем ту же модалку Step 4, но в контексте Step 5
+async function openReplaceFromStep5(driverCardId) {
+  if (!confirmationState) return;
+  const drv = confirmationState.drivers.find(d => d.id === driverCardId);
+  if (!drv || !drv.assignment_id) {
+    toast('Не удалось найти ассайнмент для замены');
+    return;
+  }
+  // Используем существующую функцию openReplaceModal — она работает с
+  // hitlState.proposed_assignments. Найдём соответствующий ассайнмент там.
+  if (!hitlState || !Array.isArray(hitlState.proposed_assignments)) {
+    toast('Контекст HITL потерян · перезагрузите страницу');
+    return;
+  }
+  const asn = hitlState.proposed_assignments.find(a => a.id === drv.assignment_id);
+  if (!asn) {
+    toast('Ассайнмент не найден в HITL state');
+    return;
+  }
+  await openReplaceModal(drv.assignment_id);
 }
 
 function startCardTimer(driverId) {
@@ -3631,7 +3777,27 @@ function markDeclined(driverId, reason) {
 }
 
 function handleTimeout(driverId) {
-  markDeclined(driverId, 'таймаут 15 мин');
+  // Demo-режим: оставляем старое поведение (имитация declined для показа эскалации)
+  if (config.demoMode) {
+    markDeclined(driverId, 'таймаут 15 мин');
+    return;
+  }
+  // Real-режим: НЕ помечаем declined в БД — водитель может ещё принять заявку.
+  // Просто показываем индикатор «таймаут истёк, ждём ответа».
+  const drv = confirmationState?.drivers.find(d => d.id === driverId);
+  if (!drv || drv.status !== 'pending') return;
+  const card = document.querySelector(`.cdrv[data-driver-id="${driverId}"]`);
+  if (!card) return;
+  const statusEl = card.querySelector('.cdrv-status');
+  if (statusEl) {
+    statusEl.innerHTML = `
+      <span class="cdrv-dot-ind" style="background:var(--warning,#d97706)"></span>
+      Время истекло · водитель не ответил
+    `;
+  }
+  addActivity('warning', `<b>${drv.name}</b> · 15 минут истекли, ответ не получен`, 'только что');
+  // Реальный статус (declined) придёт через Realtime если водитель таки откажется,
+  // или DMC сам жмёт «Переназначить» вручную.
 }
 
 function escalateAfter(afterDriverId) {
@@ -3669,11 +3835,24 @@ function escalateAfter(afterDriverId) {
   }, 700);
 }
 
-function reassignDriver(driverId) {
-  const drv = confirmationState.drivers.find(d => d.id === driverId);
+async function reassignDriver(driverId) {
+  const drv = confirmationState?.drivers.find(d => d.id === driverId);
   if (!drv || drv.status !== 'pending') return;
-  if (!confirm(`Переназначить ${drv.name}? Запрос уйдёт следующему водителю в рейтинге.`)) return;
-  markDeclined(driverId, 'переназначен диспетчером');
+
+  // Demo-режим: оставляем старое поведение (markDeclined → escalateAfter)
+  if (config.demoMode) {
+    if (!confirm(`Переназначить ${drv.name}? Запрос уйдёт следующему водителю в рейтинге.`)) return;
+    markDeclined(driverId, 'переназначен диспетчером');
+    return;
+  }
+
+  // Real-режим: открываем модалку выбора альтернатив (та же что в Step 4)
+  if (!drv.assignment_id) {
+    toast('Не удалось найти ассайнмент для замены');
+    return;
+  }
+  if (!confirm(`Переназначить водителя ${drv.name}? Откроется список альтернатив.`)) return;
+  await openReplaceModal(drv.assignment_id);
 }
 
 function simulateConfirmations() {
@@ -3710,6 +3889,10 @@ function resetAll() {
   clearInterval(slaTimerInterval);
   Object.values(cardTimerIntervals).forEach(i => clearInterval(i));
   cardTimerIntervals = {};
+  // cleanup realtime channel
+  if (confirmationState?.realtimeChannel && sb) {
+    try { sb.removeChannel(confirmationState.realtimeChannel); } catch(e) {}
+  }
   confirmationState = null;
   // HITL state
   hitlState = null;
