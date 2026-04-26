@@ -8,6 +8,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+<!-- Supabase JS Client (для прямых RPC-вызовов из дашборда) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
 <style>
 :root {
   --bg: #FAFAF7;
@@ -2639,6 +2642,19 @@ const config = {
   set demoMode(v) { localStorage.setItem('waylo_demo', v); }
 };
 
+// =========================
+// SUPABASE CLIENT (для прямых RPC из дашборда)
+// =========================
+// Используется в HITL для модалки "Заменить водителя" — даёт актуальный
+// список доступных водителей по (город, дата, vehicle_category, pax)
+// напрямую из БД, минуя n8n.
+const sb = (window.supabase && PLATFORM_CONFIG.sqlToken && PLATFORM_CONFIG.sqlToken !== 'REPLACE_WITH_YOUR_ANON_KEY')
+  ? window.supabase.createClient(PLATFORM_CONFIG.sqlEndpoint, PLATFORM_CONFIG.sqlToken)
+  : null;
+
+// DMC ID для текущего оператора (Travolna, захардкожено пока нет авторизации DMC)
+const CURRENT_DMC_ID = '6cc0404a-473a-4474-ac23-6888b9996ce7';
+
 const dz = document.getElementById('drop');
 const fi = document.getElementById('file-input');
 
@@ -2736,7 +2752,10 @@ async function openPlanReview() {
     request_id: data.request_id,
     tour_name: data.tour_name,
     pax: data.pax,
+    pax_count: data.pax,
     vehicle_type: data.vehicle_type,
+    vehicle_category: data.vehicle_type,  // алиас для RPC
+    dmc_id: CURRENT_DMC_ID,
     days: data.days || [],
     proposed_assignments: (data.proposed_assignments || []).map(a => ({...a})),
     corrections: []
@@ -2925,19 +2944,57 @@ async function openReplaceModal(assignmentId) {
     return;
   }
 
-  // Real mode: пока используем recommended_drivers из последнего ответа n8n
-  // Позже сюда добавим прямой запрос к Supabase RPC find_available_drivers
+  // ============================================================
+  // Real mode: прямой RPC к Supabase find_available_drivers
+  // Фильтрует строго по (город × дата × vehicle_category × pax),
+  // учитывает calendar_slots (занятость), мультитенантность
+  // (свои + публичные водители).
+  // ============================================================
+  if (!sb) {
+    body.innerHTML = '<div class="modal-empty">⚠️ Supabase не настроен. Проверьте anon key в PLATFORM_CONFIG.</div>';
+    return;
+  }
+
   try {
-    const allDrivers = (window._lastResult && window._lastResult.recommended_drivers) || [];
-    const alternatives = allDrivers.filter(d => d.name !== asn.driver_name);
-    renderReplaceOptions(asn, alternatives.map(d => ({
-      id: d.id || d.driver_id || d.name,
-      full_name: d.name,
-      rating: d.rating,
-      trips_completed: d.trips,
-      vehicle_label: d.car || ''
-    })));
+    // Нормализуем дату к YYYY-MM-DD
+    const dateStr = (asn.assignment_date || '').slice(0, 10);
+    const city = (asn.dispatch_city || '').toLowerCase();
+    const vehicleCat = hitlState.vehicle_category || hitlState.vehicle_type || 'van';
+    const pax = hitlState.pax_count || hitlState.pax || null;
+
+    const { data, error } = await sb.rpc('find_available_drivers', {
+      p_city: city,
+      p_date: dateStr,
+      p_vehicle_category: vehicleCat,
+      p_pax: pax,
+      p_limit: 50,
+      p_requesting_dmc_id: hitlState.dmc_id || CURRENT_DMC_ID
+    });
+
+    if (error) {
+      console.error('find_available_drivers RPC error:', error);
+      body.innerHTML = `<div class="modal-empty">Ошибка БД: ${error.message}</div>`;
+      return;
+    }
+
+    // Исключаем текущего водителя из списка альтернатив
+    const currentDriverId = asn.driver_id || asn.id;
+    const alternatives = (data || [])
+      .filter(d => d.driver_id !== currentDriverId)
+      .map(d => ({
+        id: d.driver_id,
+        full_name: d.full_name,
+        rating: d.rating,
+        trips_completed: d.trips_completed || 0,
+        is_public: d.is_public,
+        dmc_name: d.dmc_name,
+        vehicle_label: [d.vehicle_make, d.vehicle_model, `${d.capacity_pax || '?'} мест`]
+          .filter(Boolean).join(' · ')
+      }));
+
+    renderReplaceOptions(asn, alternatives);
   } catch (err) {
+    console.error('openReplaceModal error:', err);
     body.innerHTML = `<div class="modal-empty">Не удалось загрузить альтернативы: ${err.message}</div>`;
   }
 }
@@ -2945,7 +3002,7 @@ async function openReplaceModal(assignmentId) {
 function renderReplaceOptions(asn, alternatives) {
   const body = document.getElementById('replace-modal-body');
   if (!alternatives || alternatives.length === 0) {
-    body.innerHTML = '<div class="modal-empty">Нет других доступных водителей в этом городе на эту дату.</div>';
+    body.innerHTML = '<div class="modal-empty">Нет других доступных водителей в этом городе на эту дату.<br><span style="color:var(--muted);font-size:13px">Проверьте фильтры: vehicle_category, pax, занятость в календаре.</span></div>';
     return;
   }
   // Текущий водитель в начало (read-only)
@@ -2958,16 +3015,21 @@ function renderReplaceOptions(asn, alternatives) {
       </div>
       <div class="mdo-meta">★ ${asn.rating || '—'}</div>
     </div>
-  ` + alternatives.map(d => `
-    <div class="modal-driver-opt" onclick="applyDriverReplacement('${asn.id}', '${d.id}', '${(d.full_name || '').replace(/'/g, '&#39;')}', ${d.rating || 0})">
-      <div class="ra-avatar">${initials(d.full_name)}</div>
-      <div>
-        <div class="ra-name">${d.full_name}</div>
-        <div class="mdo-meta">${d.vehicle_label || ''} · ${d.trips_completed || 0} поездок</div>
+  ` + alternatives.map(d => {
+    const dmcBadge = d.is_public
+      ? `<span class="city-tag" style="background:#fff5e1;color:#8a6500;border-color:#f0d896;margin-left:6px">общий пул${d.dmc_name && d.dmc_name !== 'Общий пул' ? ` · ${d.dmc_name}` : ''}</span>`
+      : `<span class="city-tag" style="background:#e6f4ee;color:#0a7d5f;border-color:#b5dcca;margin-left:6px">свой</span>`;
+    return `
+      <div class="modal-driver-opt" onclick="applyDriverReplacement('${asn.id}', '${d.id}', '${(d.full_name || '').replace(/'/g, '&#39;')}', ${d.rating || 0})">
+        <div class="ra-avatar">${initials(d.full_name)}</div>
+        <div>
+          <div class="ra-name">${d.full_name}${dmcBadge}</div>
+          <div class="mdo-meta">${d.vehicle_label || ''} · ${d.trips_completed || 0} поездок</div>
+        </div>
+        <div class="mdo-meta">★ ${d.rating || '—'}</div>
       </div>
-      <div class="mdo-meta">★ ${d.rating || '—'}</div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function applyDriverReplacement(assignmentId, newDriverId, newDriverName, newRating) {
