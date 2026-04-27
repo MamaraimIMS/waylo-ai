@@ -387,6 +387,40 @@ button { font-family: inherit; border: none; cursor: pointer; }
   gap: 8px;
 }
 
+/* === Confirmed state (after driver accepted) === */
+.incoming.confirmed {
+  border-color: #2EB58D;
+  background: linear-gradient(180deg, rgba(46, 181, 141, 0.06) 0%, var(--surface) 60%);
+  box-shadow: 0 2px 12px rgba(46, 181, 141, 0.10);
+}
+.incoming.confirmed::before {
+  background: #2EB58D;
+  animation: none;
+  background-size: 100% 100%;
+}
+.incoming.confirmed .incoming-label {
+  background: rgba(46, 181, 141, 0.14);
+  color: #1F8A66;
+}
+.incoming.confirmed .check-ico {
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+}
+.confirmed-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: var(--r);
+  background: rgba(46, 181, 141, 0.10);
+  color: #1F8A66;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.confirmed-banner svg { flex-shrink: 0; }
+
 .btn-big {
   height: 52px;
   border-radius: var(--r);
@@ -1831,6 +1865,24 @@ const REASON_META = {
     // 5. Загружаем календарь на текущий месяц
     await loadCalendar();
 
+    // 5a. Если в текущем месяце нет слотов — найти ближайший месяц с booked и переключиться
+    if (state.calendar.slots.size === 0) {
+      const { data: nearest } = await sb
+        .from('calendar_slots')
+        .select('slot_date')
+        .eq('driver_id', state.driver.id)
+        .in('status', ['booked', 'blocked', 'tentative'])
+        .order('slot_date', { ascending: true })
+        .limit(1);
+
+      if (nearest && nearest.length > 0) {
+        const d = new Date(nearest[0].slot_date + 'T00:00:00');
+        state.calendar.year = d.getFullYear();
+        state.calendar.month = d.getMonth();
+        await loadCalendar();
+      }
+    }
+
     // 5b. Загружаем заявки и предстоящие поездки
     await Promise.all([loadRequests(), loadUpcoming()]);
 
@@ -2376,7 +2428,7 @@ async function loadRequests() {
       )
     `)
     .eq('driver_id', state.driver.id)
-    .in('status', ['pending', 'sent'])
+    .in('status', ['pending', 'sent', 'confirmed'])
     .order('assignment_date', { ascending: true });
 
   if (error) {
@@ -2484,13 +2536,31 @@ function renderRequests() {
       </div>`).join('');
     const more = segs.length > 3 ? `<div class="irt-more">+ ${segs.length - 3} ${pluralSeg(segs.length - 3)} трансфера</div>` : '';
 
+    const isConfirmed = a.status === 'confirmed';
+
+    const headLabel = isConfirmed
+      ? `<svg class="check-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+         Подтверждена · ${escapeHtml(a.dmc_name || 'DMC')}`
+      : `<span class="pulse-dot"></span>
+         Новая заявка · ${escapeHtml(a.dmc_name || 'DMC')}`;
+
+    const actionsHtml = isConfirmed
+      ? `<div class="confirmed-banner">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+           Заявка принята · ждёт даты поездки
+         </div>`
+      : `<div class="incoming-actions">
+           <button class="btn-big decline" onclick="showDeclineSheet('${a.id}')">Отказаться</button>
+           <button class="btn-big primary" onclick="showAcceptSheet('${a.id}')">
+             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+             Принять
+           </button>
+         </div>`;
+
     return `
-      <div class="incoming" data-assignment-id="${a.id}">
+      <div class="incoming ${isConfirmed ? 'confirmed' : ''}" data-assignment-id="${a.id}">
         <div class="incoming-head">
-          <div class="incoming-label">
-            <span class="pulse-dot"></span>
-            Новая заявка · ${escapeHtml(a.dmc_name || 'DMC')}
-          </div>
+          <div class="incoming-label">${headLabel}</div>
         </div>
         <div class="incoming-title">${escapeHtml(tr.tour_name || 'Тур')}</div>
         <div class="incoming-sub">${escapeHtml(sub)}</div>
@@ -2504,13 +2574,7 @@ function renderRequests() {
           <div class="irt-title">Маршрут дня</div>
           <div class="irt-list">${routeRows}${more}</div>
         </div>
-        <div class="incoming-actions">
-          <button class="btn-big decline" onclick="showDeclineSheet('${a.id}')">Отказаться</button>
-          <button class="btn-big primary" onclick="showAcceptSheet('${a.id}')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Принять
-          </button>
-        </div>
+        ${actionsHtml}
       </div>`;
   }).join('');
 }
